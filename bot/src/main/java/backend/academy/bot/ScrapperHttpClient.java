@@ -18,42 +18,42 @@ public class ScrapperHttpClient {
         this.webClient = webClientBuilder.baseUrl("http://localhost:8080").build();
     }
 
-    public Mono<Void> registerChat(long id) {
+    public Mono<Void> registerChat(long chatId) {
         return webClient.post()
-            .uri("/tg-chat/{id}", id)
+            .uri("/tg-chat/{id}", chatId)
             .retrieve()
             .bodyToMono(Void.class);
     }
 
-    public Mono<Void> deleteChat(long id) {
+    public Mono<Void> deleteChat(long chatId) {
         return webClient.delete()
-            .uri("/tg-chat/{id}", id)
+            .uri("/tg-chat/{id}", chatId)
             .retrieve()
             .bodyToMono(Void.class);
     }
 
-    public Mono<ListLinksResponse> getLinks(long id) {
+    public Mono<ListLinksResponse> getLinks(long chatId) {
         return webClient.get()
             .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(id))
+            .header("Tg-Chat-Id", String.valueOf(chatId))
             .retrieve()
             .bodyToMono(ListLinksResponse.class);
     }
 
-    public Mono<LinkResponse> addLink(long id, AddLinkRequest request) {
+    public Mono<LinkResponse> addLink(long chatId, AddLinkRequest request) {
         return webClient.post()
             .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(id))
+            .header("Tg-Chat-Id", String.valueOf(chatId))
             .bodyValue(request)
             .retrieve()
             .bodyToMono(LinkResponse.class);
 
     }
 
-    public Mono<LinkResponse> removeLink(long id, RemoveLinkRequest request) {
+    public Mono<LinkResponse> removeLink(long chatId, RemoveLinkRequest request) {
         return webClient.delete()
             .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(id))
+            .header("Tg-Chat-Id", String.valueOf(chatId))
             .retrieve()
             .bodyToMono(LinkResponse.class);
     }
