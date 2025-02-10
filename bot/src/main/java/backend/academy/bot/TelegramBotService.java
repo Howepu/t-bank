@@ -3,8 +3,10 @@ package backend.academy.bot;
 import backend.academy.bot.commands.CommandHandler;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.request.SetMyCommands;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class TelegramBotService {
 
     @PostConstruct
     public void init() {
+        telegramBot.execute(createMenuCommand());
         telegramBot.setUpdatesListener(updates -> {
             try {
                 if (updates.isEmpty()) {
@@ -68,4 +71,12 @@ public class TelegramBotService {
         // Отправляем ответ пользователю
         telegramBot.execute(response);
     }
+
+    private SetMyCommands createMenuCommand() {
+        return new SetMyCommands(commandHandlers.values().stream().map(command -> new BotCommand(
+            command.command(),
+            command.description()
+        )).toArray(BotCommand[]::new));
+    }
+
 }
