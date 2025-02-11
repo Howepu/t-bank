@@ -8,20 +8,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
+@Getter
 public class ListLinksResponse {
 
     private List<LinkResponse> links;
     private int size;
 
-    public List<LinkResponse> getLinks() {
-        return links;
-    }
-
-    public int getSize() {
-        return size;
-    }
 }

@@ -31,11 +31,11 @@ public class ListCommand implements CommandHandler {
 
         return scrapperHttpClient.getLinks(chatId)
             .map(response -> {
-                if (response.getLinks().isEmpty()) {
+                if (response.links().isEmpty()) {
                     return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
                 }
-                String links = response.getLinks().stream()
-                    .map(link -> "- " + link.getUrl())
+                String links = response.links().stream()
+                    .map(link -> "- " + link.url())
                     .reduce("", (a, b) -> a + "\n" + b);
                 return new SendMessage(chatId, "Ваши отслеживаемые ссылки:\n" + links);
             })

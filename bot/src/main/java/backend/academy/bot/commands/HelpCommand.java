@@ -2,18 +2,16 @@ package backend.academy.bot.commands;
 
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@AllArgsConstructor
 public class HelpCommand implements CommandHandler {
 
     private final List<CommandHandler> commands;
-
-    public HelpCommand(List<CommandHandler> commands) {
-        this.commands = commands;
-    }
 
     @Override
     public String command() {

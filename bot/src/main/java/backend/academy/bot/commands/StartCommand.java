@@ -3,21 +3,19 @@ package backend.academy.bot.commands;
 import backend.academy.bot.ScrapperHttpClient;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import jakarta.annotation.security.DenyAll;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
+@Slf4j
 public class StartCommand implements CommandHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(StartCommand.class);
     private final ScrapperHttpClient scrapperHttpClient;
-
-    public StartCommand(ScrapperHttpClient scrapperHttpClient) {
-        this.scrapperHttpClient = scrapperHttpClient;
-    }
-
-
 
     @Override
     public String command() {
