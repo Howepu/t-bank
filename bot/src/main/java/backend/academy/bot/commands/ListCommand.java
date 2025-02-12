@@ -7,13 +7,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class ListCommand implements CommandHandler {
 
     private final ScrapperHttpClient scrapperHttpClient;
-
-    public ListCommand(ScrapperHttpClient scrapperHttpClient) {
-        this.scrapperHttpClient = scrapperHttpClient;
-    }
 
     @Override
     public String command() {

@@ -15,7 +15,7 @@ public class ScrapperHttpClient {
     private final WebClient webClient;
 
     public ScrapperHttpClient(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8080").build();
+        this.webClient = webClientBuilder.baseUrl("http://localhost:8081").build();
     }
 
     public Mono<Void> registerChat(long chatId) {
