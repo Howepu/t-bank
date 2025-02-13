@@ -1,9 +1,6 @@
-package backend.academy.bot.models;
-
+package backend.academy.bot.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.List;
@@ -11,10 +8,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
-@Getter
-public class ListLinksResponse {
+public class AddLinkRequest {
 
-    private List<LinkResponse> links;
-    private int size;
-
+    private String link;
+    private List<String> tags;
+    private List<String> filters;
 }
