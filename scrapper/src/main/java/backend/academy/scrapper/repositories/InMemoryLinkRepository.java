@@ -4,6 +4,7 @@ import backend.academy.scrapper.models.Link;
 import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryLinkRepository implements LinkRepository {
@@ -12,8 +13,10 @@ public class InMemoryLinkRepository implements LinkRepository {
 
     @Override
     public Link save(Long chatId, Link link) {
-        link.chatId(chatId);  // Устанавливаем chatId в ссылку
+        link.chatId(chatId);
         links.add(link);
+
+        return link;
     }
 
     @Override
