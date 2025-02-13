@@ -8,28 +8,35 @@ import java.util.List;
 @Repository
 public class InMemoryLinkRepository implements LinkRepository {
 
-    private List<Link> links = new ArrayList<>();
+    private final List<Link> links = new ArrayList<>();  // Общий список всех ссылок
 
     @Override
-    public void save(Link link) {
+    public Link save(Long chatId, Link link) {
+        link.chatId(chatId);  // Устанавливаем chatId в ссылку
         links.add(link);
     }
 
     @Override
-    public void remove(String url) {
-        links.removeIf(link -> link.url().equals(url));
+    public Link remove(Long chatId, String url) {
+        List<Link> linkList = findAllByChatId(chatId).stream().filter(l -> l.url().equals(url)).toList();
+
+        if (!linkList.isEmpty()) {
+            Link link = linkList.getFirst();
+            links.remove(link);
+            return link;
+        }
+
+        return null;
     }
 
     @Override
-    public List<Link> findAll() {
-        return links;
-    }
-
-    @Override
-    public Link findByUrl(String url) {
-        return links.stream()
-            .filter(link -> link.url().equals(url))
-            .findFirst()
-            .orElse(null);
+    public List<Link> findAllByChatId(Long chatId) {
+        List<Link> chatLinks = new ArrayList<>();
+        for (Link link : links) {
+            if (link.chatId() == chatId) {
+                chatLinks.add(link);
+            }
+        }
+        return chatLinks;
     }
 }

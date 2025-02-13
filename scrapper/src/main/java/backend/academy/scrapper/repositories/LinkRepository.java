@@ -3,10 +3,8 @@ package backend.academy.scrapper.repositories;
 import backend.academy.scrapper.models.Link;
 import java.util.List;
 
-
 public interface LinkRepository {
-    void save(Link link);
-    void remove(String url);
-    List<Link> findAll();
-    Link findByUrl(String url);
+    Link save(Long chatId, Link link);
+    Link remove(Long chatId, String url);
+    List<Link> findAllByChatId(Long chatId);
 }
