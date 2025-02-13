@@ -1,13 +1,14 @@
 package backend.academy.bot;
 
 
-import backend.academy.bot.models.AddLinkRequest;
-import backend.academy.bot.models.LinkResponse;
-import backend.academy.bot.models.ListLinksResponse;
-import backend.academy.bot.models.RemoveLinkRequest;
+
+import backend.academy.bot.dto.LinkResponse;
+import backend.academy.bot.dto.ListLinksResponse;
+import backend.academy.bot.dto.RemoveLinkRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import backend.academy.bot.dto.AddLinkRequest;
 
 @Component
 public class ScrapperHttpClient {
