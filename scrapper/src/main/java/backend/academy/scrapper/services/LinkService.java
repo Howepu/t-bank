@@ -2,27 +2,58 @@ package backend.academy.scrapper.services;
 
 import backend.academy.scrapper.dto.ApiErrorResponse;
 import backend.academy.scrapper.dto.LinkResponse;
+import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.repositories.LinkRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class LinkService {
 
     private final LinkRepository linkRepository;
+    private final ChatService chatService;
 
-    public LinkResponse addLink(Long chatId, Link link) {
+    public ResponseEntity<?> addLink(Long chatId, Link link) {
+        if (!chatService.isChatRegistered(chatId)) {
+            throw new IllegalStateException("Чат не зарегистрирован");
+        }
+        // Проверка на корректность параметров
+        if (chatId == null) {
+            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
+            apiErrorResponse.description("Некорректные параметры запроса");
+            apiErrorResponse.code("400");
+            apiErrorResponse.exceptionName("InvalidRequest");
+            apiErrorResponse.exceptionMessage("Chat ID должен быть предоставлен и не может быть пустым");
+            return ResponseEntity.status(400).body(apiErrorResponse);
+        }
+
         Link savedLink = linkRepository.save(chatId, link);
+        LinkResponse linkResponse = new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters());
 
-        return new LinkResponse(savedLink.chatId(), savedLink.url(), savedLink.tags(), savedLink.filters());
+        return ResponseEntity.ok().body(linkResponse);
     }
 
     public ResponseEntity<?> removeLink(Long chatId, String url) {
+
+        if (!chatService.isChatRegistered(chatId)) {
+            throw new IllegalStateException("Чат не зарегистрирован");
+        }
+
+        // Проверка на корректность параметров
+        if (chatId == null || url == null || url.isEmpty()) {
+            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
+            apiErrorResponse.description("Некорректные параметры запроса");
+            apiErrorResponse.code("400");
+            apiErrorResponse.exceptionName("InvalidRequest");
+            apiErrorResponse.exceptionMessage("Chat ID и URL должны быть предоставлены и не могут быть пустыми");
+            return ResponseEntity.status(400).body(apiErrorResponse);
+        }
+
+        // Попытка удалить ссылку
         Link link = linkRepository.remove(chatId, url);
 
         if (link == null) {
@@ -30,18 +61,31 @@ public class LinkService {
             return ResponseEntity.status(404).body((apiErrorResponse));
         }
 
-        return ResponseEntity.ok().body(link);
+        LinkResponse linkResponse = new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters());
+        return ResponseEntity.ok().body(linkResponse);
     }
 
-    public List<LinkResponse> getAllLinks(Long chatId) {
-        List<Link> savedLinks =  linkRepository.findAllByChatId(chatId);
+    public ResponseEntity<?> getAllLinks(Long chatId) {
+        if (!chatService.isChatRegistered(chatId)) {
+            throw new IllegalStateException("Чат не зарегистрирован");
+        }
 
-        return savedLinks
-            .stream()
-            .map(link ->
-                new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters())
-            )
+        // Проверка на корректность параметров
+        if (chatId == null) {
+            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
+            apiErrorResponse.description("Некорректные параметры запроса");
+            apiErrorResponse.code("400");
+            apiErrorResponse.exceptionName("InvalidRequest");
+            apiErrorResponse.exceptionMessage("Chat ID должен быть предоставлен и не может быть пустым");
+            return ResponseEntity.status(400).body(apiErrorResponse);
+        }
+
+        List<Link> savedLinks = linkRepository.findAllByChatId(chatId);
+        List<LinkResponse> links = savedLinks.stream()
+            .map(link -> new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters()))
             .toList();
-    }
 
+        ListLinksResponse listLinksResponse = new ListLinksResponse(links, links.size());
+        return ResponseEntity.ok(listLinksResponse);
+    }
 }
