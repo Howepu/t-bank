@@ -5,7 +5,9 @@ package backend.academy.bot;
 import backend.academy.bot.dto.LinkResponse;
 import backend.academy.bot.dto.ListLinksResponse;
 import backend.academy.bot.dto.RemoveLinkRequest;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import backend.academy.bot.dto.AddLinkRequest;
@@ -52,10 +54,13 @@ public class ScrapperHttpClient {
     }
 
     public Mono<LinkResponse> removeLink(long chatId, RemoveLinkRequest request) {
-        return webClient.delete()
-            .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(chatId))
-            .retrieve()
-            .bodyToMono(LinkResponse.class);
+        return webClient
+            .method(HttpMethod.DELETE)  // Указываем HTTP-метод DELETE
+            .uri("/links")  // URI для удаления
+            .header("Tg-Chat-Id", String.valueOf(chatId))  // Отправка chatId в заголовке
+            .body(BodyInserters.fromValue(request))  // Передача тела запроса
+            .exchangeToMono(clientResponse -> clientResponse.bodyToMono(LinkResponse.class));  // Обработка ответа
     }
+
+
 }

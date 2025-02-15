@@ -1,7 +1,5 @@
 package backend.academy.scrapper.controllers;
 
-import backend.academy.scrapper.dto.LinkResponse;
-import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.dto.RemoveLinkRequest;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.services.LinkService;

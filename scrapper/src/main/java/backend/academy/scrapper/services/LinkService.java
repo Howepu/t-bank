@@ -32,7 +32,8 @@ public class LinkService {
         }
 
         Link savedLink = linkRepository.save(chatId, link);
-        LinkResponse linkResponse = new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters());
+        LinkResponse linkResponse = new LinkResponse(savedLink.chatId(), savedLink.url(), savedLink.tags(),
+            savedLink.filters());
 
         return ResponseEntity.ok().body(linkResponse);
     }
@@ -58,6 +59,10 @@ public class LinkService {
 
         if (link == null) {
             ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
+            apiErrorResponse.description("Ссылка не найдена");
+            apiErrorResponse.code("404");
+            apiErrorResponse.exceptionName("Not Found");
+            apiErrorResponse.exceptionMessage("Такой link отсутствует");
             return ResponseEntity.status(404).body((apiErrorResponse));
         }
 
@@ -66,9 +71,7 @@ public class LinkService {
     }
 
     public ResponseEntity<?> getAllLinks(Long chatId) {
-        if (!chatService.isChatRegistered(chatId)) {
-            throw new IllegalStateException("Чат не зарегистрирован");
-        }
+
 
         // Проверка на корректность параметров
         if (chatId == null) {
