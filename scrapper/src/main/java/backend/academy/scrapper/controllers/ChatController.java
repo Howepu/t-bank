@@ -3,13 +3,13 @@ package backend.academy.scrapper.controllers;
 import backend.academy.scrapper.services.ChatService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("/tg-chat")
 public class ChatController {
@@ -18,16 +18,14 @@ public class ChatController {
 
     // Зарегистрировать чат
     @PostMapping("/{id}")
-    public ResponseEntity<Void> registerChat(@PathVariable Long id) {
-        chatService.registerChat(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> registerChat(@PathVariable Long id) {
+        return chatService.registerChat(id);
     }
 
     // Удалить чат
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removeChat(@PathVariable Long id) {
-        chatService.removeChat(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> removeChat(@PathVariable Long id) {
+        return chatService.removeChat(id);
     }
 
 }

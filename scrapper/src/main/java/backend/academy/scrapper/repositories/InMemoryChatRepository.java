@@ -9,7 +9,7 @@ import java.util.Set;
 @Repository
 public class InMemoryChatRepository implements ChatRepository {
 
-    private final Set<Chat> registeredChats = new HashSet<>();
+    private final static Set<Chat> registeredChats = new HashSet<>();
 
 
     @Override
