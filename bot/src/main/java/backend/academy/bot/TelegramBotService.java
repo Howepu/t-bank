@@ -1,6 +1,7 @@
 package backend.academy.bot;
 
 import backend.academy.bot.commands.CommandHandler;
+import backend.academy.bot.commands.TrackDialog;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
@@ -8,6 +9,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,16 +18,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class TelegramBotService {
 
     private final TelegramBot telegramBot;
     private final Map<String, CommandHandler> commandHandlers;
+    private final TrackDialog trackDialog;
 
-    public TelegramBotService(BotConfig botConfig, List<CommandHandler> commandHandlers) {
+    public TelegramBotService(BotConfig botConfig, List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
         String botToken = System.getenv("TELEGRAM_TOKEN");
         this.telegramBot = new TelegramBot(botToken);
         this.commandHandlers = commandHandlers.stream()
             .collect(Collectors.toMap(CommandHandler::command, handler -> handler));
+        this.trackDialog = trackDialog;
     }
 
     @PostConstruct
@@ -34,14 +39,14 @@ public class TelegramBotService {
         telegramBot.setUpdatesListener(updates -> {
             try {
                 if (updates.isEmpty()) {
-                    System.out.println("Нет новых обновлений.");
+                    log.info("Нет новых обновлений.");
                     return UpdatesListener.CONFIRMED_UPDATES_ALL;
                 }
 
                 updates.forEach(this::processUpdate);
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             } catch (Exception e) {
-                System.err.println("Ошибка при обработке обновлений: " + e.getMessage());
+                log.error("Ошибка при обработке обновлений: " + e.getMessage());
                 e.printStackTrace();
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             }
@@ -49,27 +54,29 @@ public class TelegramBotService {
     }
 
     private void processUpdate(Update update) {
-        // Проверяем, есть ли сообщение и текст
         if (update.message() == null || update.message().text() == null) {
-            System.out.println("Получено обновление без текста сообщения.");
+            log.info("Получено обновление без текста сообщения.");
             return;
         }
 
-        // Извлекаем информацию о сообщении
         long chatId = update.message().chat().id();
-        String messageText = update.message().text();
-        System.out.println("Получено сообщение от chatId: " + chatId + " с текстом: " + messageText);
+        String messageText = update.message().text().trim();
+        log.info("Получено сообщение от chatId: " + chatId + " с текстом: " + messageText);
 
-        // Найдем обработчик для команды
-        Optional<CommandHandler> handlerOpt = Optional.ofNullable(commandHandlers.get(messageText));
+        // Обработка команд
+        Optional<CommandHandler> handlerOpt = commandHandlers.values().stream()
+            .filter(handler -> messageText.startsWith(handler.command()))
+            .findFirst();
 
-        // Если обработчик найден, обрабатываем команду, иначе отправляем сообщение с ошибкой
-        SendMessage response = handlerOpt
-            .map(handler -> handler.handle(update))
-            .orElseGet(() -> new SendMessage(chatId, "Неизвестная команда. Используйте /help."));
-
-        // Отправляем ответ пользователю
-        telegramBot.execute(response);
+        if (handlerOpt.isPresent()) {
+            CommandHandler handler = handlerOpt.get();
+            SendMessage response = handler.handle(update);
+            telegramBot.execute(response);
+        } else {
+            // Если это не команда, передаем в диалог
+            SendMessage response = trackDialog.handle(update);
+            telegramBot.execute(response);
+        }
     }
 
     private SetMyCommands createMenuCommand() {
@@ -78,5 +85,8 @@ public class TelegramBotService {
             command.description()
         )).toArray(BotCommand[]::new));
     }
-
 }
+
+
+
+
