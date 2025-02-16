@@ -5,8 +5,10 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Repository
@@ -14,6 +16,7 @@ public class InMemoryLinkRepository implements LinkRepository {
 
     private final List<Link> links = new ArrayList<>();
     private final Map<String, LocalDateTime> linkLastUpdated = new HashMap<>();
+    private final Set<String> initializedLinks = new HashSet<>();
 
 
     @Override
@@ -58,9 +61,16 @@ public class InMemoryLinkRepository implements LinkRepository {
         return linkLastUpdated.get(url);
     }
 
-    public void updateLastUpdated(String url) {
-        linkLastUpdated.put(url, LocalDateTime.now());
+    public void updateLastUpdated(String url, LocalDateTime pushedAt) {
+        linkLastUpdated.put(url, pushedAt);
     }
 
+    public boolean isInitialized(String url) {
+        return initializedLinks.contains(url);
+    }
+
+    public void markInitialized(String url) {
+        initializedLinks.add(url);
+    }
 
 }
