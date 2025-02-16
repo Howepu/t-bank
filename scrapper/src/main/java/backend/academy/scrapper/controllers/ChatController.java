@@ -18,14 +18,16 @@ public class ChatController {
 
     // Зарегистрировать чат
     @PostMapping("/{id}")
-    public ResponseEntity<?> registerChat(@PathVariable Long id) {
-        return chatService.registerChat(id);
+    public ResponseEntity<Void> registerChat(@PathVariable Long id) {
+        chatService.registerChat(id);
+        return ResponseEntity.ok().build();
     }
 
     // Удалить чат
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> removeChat(@PathVariable Long id) {
-        return chatService.removeChat(id);
+    public ResponseEntity<Void> removeChat(@PathVariable Long id) {
+        chatService.removeChat(id);
+        return ResponseEntity.ok().build();
     }
 
 }

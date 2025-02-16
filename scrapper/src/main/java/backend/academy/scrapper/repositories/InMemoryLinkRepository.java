@@ -2,20 +2,25 @@ package backend.academy.scrapper.repositories;
 
 import backend.academy.scrapper.models.Link;
 import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
 
 @Repository
 public class InMemoryLinkRepository implements LinkRepository {
 
-    private final List<Link> links = new ArrayList<>();  // Общий список всех ссылок
+    private final List<Link> links = new ArrayList<>();
+    private final Map<String, LocalDateTime> linkLastUpdated = new HashMap<>();
+
 
     @Override
     public Link save(Long chatId, Link link) {
         link.chatId(chatId);
         links.add(link);
-
+        linkLastUpdated.put(link.url(), LocalDateTime.now());
         return link;
     }
 
@@ -26,6 +31,7 @@ public class InMemoryLinkRepository implements LinkRepository {
         if (!linkList.isEmpty()) {
             Link link = linkList.getFirst();
             links.remove(link);
+            linkLastUpdated.remove(url);
             return link;
         }
 
@@ -42,4 +48,19 @@ public class InMemoryLinkRepository implements LinkRepository {
         }
         return chatLinks;
     }
+
+    @Override
+    public List<Link> findAll() {
+        return new ArrayList<>(links);
+    }
+
+    public LocalDateTime getLastUpdated(String url) {
+        return linkLastUpdated.get(url);
+    }
+
+    public void updateLastUpdated(String url) {
+        linkLastUpdated.put(url, LocalDateTime.now());
+    }
+
+
 }

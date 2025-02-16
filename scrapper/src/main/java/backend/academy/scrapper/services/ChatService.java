@@ -5,6 +5,7 @@ import backend.academy.scrapper.repositories.InMemoryChatRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import java.util.NoSuchElementException;
 
 @Service
 @AllArgsConstructor
@@ -12,46 +13,29 @@ public class ChatService {
 
     private final InMemoryChatRepository chatRepository;
 
-    public ResponseEntity<?> registerChat(Long chatId) {
+    public void registerChat(Long chatId) {
         if (chatId == null) {
-            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
-            apiErrorResponse.description("Некорректные параметры запроса");
-            apiErrorResponse.code("400");
-            apiErrorResponse.exceptionName("InvalidRequest");
-            apiErrorResponse.exceptionMessage("Chat ID должен быть предоставлен и не может быть пустым");
-            return ResponseEntity.status(400).body(apiErrorResponse);
+            throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
         }
+
         chatRepository.save(chatId);
-        return ResponseEntity.ok().build();
     }
 
     public boolean isChatRegistered(Long chatId) {
         return chatRepository.isChatRegistered(chatId);
     }
 
-    public ResponseEntity<?> removeChat(Long chatId) {
+    public void removeChat(Long chatId) {
 
         if (chatId == null) {
-            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
-            apiErrorResponse.description("Некорректные параметры запроса");
-            apiErrorResponse.code("400");
-            apiErrorResponse.exceptionName("InvalidRequest");
-            apiErrorResponse.exceptionMessage("Chat ID должен быть предоставлен и не может быть пустым");
-            return ResponseEntity.status(400).body(apiErrorResponse);
+            throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
         }
+
+        chatRepository.remove(chatId);
 
         if (!chatRepository.isChatRegistered(chatId)) {
-            ApiErrorResponse apiErrorResponse = new ApiErrorResponse();
-            apiErrorResponse.description("Чат не найден");
-            apiErrorResponse.code("404");
-            apiErrorResponse.exceptionName("ChatNotFound");
-            apiErrorResponse.exceptionMessage("Чат с ID " + chatId + " не существует");
-            return ResponseEntity.status(404).body(apiErrorResponse);
+            throw new NoSuchElementException("Chat ID не найден");
         }
-
-        // Удаление чата
-        chatRepository.remove(chatId);
-        return ResponseEntity.ok().build();
     }
 
 }
