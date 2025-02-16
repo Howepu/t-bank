@@ -65,15 +65,12 @@ class LinkServiceTest {
 
     @Test
     void testRemoveLinkHappyPath() {
-        // Мокаем, что чат зарегистрирован и в репозитории есть ссылка для удаления
         when(chatService.isChatRegistered(chatId)).thenReturn(true);
         Link existingLink = new Link(chatId, "http://example.com", List.of("tag1", "tag2"), List.of("filter1", "filter2"));
         when(linkRepository.remove(chatId, "http://example.com")).thenReturn(existingLink);
 
-        // Вызываем сервис для удаления ссылки
         Link removedLink = linkService.removeLink(chatId, "http://example.com");
 
-        // Проверяем, что ссылка была удалена и её данные правильные
         assertNotNull(removedLink);
         assertEquals("http://example.com", removedLink.url());
         assertEquals(2, removedLink.tags().size());

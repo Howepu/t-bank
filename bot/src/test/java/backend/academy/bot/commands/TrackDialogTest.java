@@ -1,0 +1,80 @@
+package backend.academy.bot.commands;
+
+import backend.academy.bot.clients.ScrapperHttpClient;
+import backend.academy.bot.dto.AddLinkRequest;
+import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.Chat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class TrackDialogTest {
+
+    private ScrapperHttpClient scrapperHttpClient;
+    private TrackDialog trackDialog;
+
+    @BeforeEach
+    void setUp() {
+        scrapperHttpClient = Mockito.mock(ScrapperHttpClient.class);
+        trackDialog = new TrackDialog(scrapperHttpClient);
+    }
+
+    private Update mockUpdate(Long chatId, String messageText) {
+        Update update = mock(Update.class);
+        Message message = mock(Message.class);
+        Chat chat = mock(Chat.class);
+
+        when(update.message()).thenReturn(message);
+        when(message.chat()).thenReturn(chat);
+        when(chat.id()).thenReturn(chatId);
+        when(message.text()).thenReturn(messageText);
+        when(message.messageId()).thenReturn(123);
+
+        return update;
+    }
+
+    @Test
+    void testTrackCommand_ValidUrl() {
+        Long chatId = 12345L;
+        Update update = mockUpdate(chatId, "/track https://github.com/example/repo");
+
+        when(scrapperHttpClient.addLink(anyLong(), any(AddLinkRequest.class)))
+            .thenReturn(Mono.empty());  // Эмулируем успешный вызов
+
+        // Первый шаг (ввод ссылки)
+        var response = trackDialog.handle(update);
+        assertNotNull(response);
+        assertEquals("Введите тэги через запятую (опционально). Введите - для пропуска",
+            response.getParameters().get("text"));
+
+        // Второй шаг (ввод тегов)
+        update = mockUpdate(chatId, "java, backend");
+        response = trackDialog.handle(update);
+        assertEquals("Настройте фильтры через запятую (опционально). Введите - для пропуска",
+            response.getParameters().get("text"));
+
+        // Третий шаг (ввод фильтров)
+        update = mockUpdate(chatId, "-");
+        response = trackDialog.handle(update);
+
+        assertTrue(response.getParameters().get("text").toString().contains("Ссылка добавлена"));
+        verify(scrapperHttpClient, times(1)).addLink(eq(chatId), any(AddLinkRequest.class));
+    }
+
+    @Test
+    void testTrackCommand_InvalidUrl() {
+        Long chatId = 12345L;
+        Update update = mockUpdate(chatId, "/track https://example.com/not-supported");
+
+        var response = trackDialog.handle(update);
+        assertNotNull(response);
+        assertEquals("Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.", response.getParameters().get("text"));
+    }
+
+}
+
