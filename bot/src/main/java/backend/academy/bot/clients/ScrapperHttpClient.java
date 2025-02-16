@@ -1,4 +1,4 @@
-package backend.academy.bot;
+package backend.academy.bot.clients;
 
 
 
@@ -55,11 +55,11 @@ public class ScrapperHttpClient {
 
     public Mono<LinkResponse> removeLink(long chatId, RemoveLinkRequest request) {
         return webClient
-            .method(HttpMethod.DELETE)  // Указываем HTTP-метод DELETE
+            .method(HttpMethod.DELETE)
             .uri("/links")  // URI для удаления
-            .header("Tg-Chat-Id", String.valueOf(chatId))  // Отправка chatId в заголовке
-            .body(BodyInserters.fromValue(request))  // Передача тела запроса
-            .exchangeToMono(clientResponse -> clientResponse.bodyToMono(LinkResponse.class));  // Обработка ответа
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .body(BodyInserters.fromValue(request))
+            .exchangeToMono(clientResponse -> clientResponse.bodyToMono(LinkResponse.class));
     }
 
 
