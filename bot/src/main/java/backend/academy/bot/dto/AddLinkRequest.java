@@ -8,7 +8,6 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 public class AddLinkRequest {
 
     @JsonProperty("url")

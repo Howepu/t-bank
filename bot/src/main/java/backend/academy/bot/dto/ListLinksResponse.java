@@ -9,7 +9,6 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 @Getter
 public class ListLinksResponse {
 

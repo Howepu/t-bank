@@ -9,7 +9,6 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 @Getter
 @Setter
 public class AddLinkRequest {
