@@ -1,8 +1,8 @@
 package backend.academy.scrapper.services;
 
 import backend.academy.scrapper.github.GitHubClient;
+import backend.academy.scrapper.github.GitHubRepository;
 import backend.academy.scrapper.repositories.InMemoryLinkRepository;
-import backend.academy.scrapper.repositories.LinkRepository;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.bot.BotHttpClient;
 import backend.academy.scrapper.dto.LinkUpdate;
@@ -17,7 +17,7 @@ import java.util.List;
 public class LinkCheckService {
 
     private final GitHubClient gitHubClient;
-    private final InMemoryLinkRepository linkRepository; // Используем правильный репозиторий
+    private final InMemoryLinkRepository linkRepository;
     private final BotHttpClient botHttpClient;
 
     public LinkCheckService(GitHubClient gitHubClient, InMemoryLinkRepository linkRepository,
@@ -29,7 +29,6 @@ public class LinkCheckService {
 
     @Scheduled(fixedRate = 5000) // Проверка раз в минуту
     public void checkLinks() {
-        // Получаем все ссылки из репозитория
         for (Link link : linkRepository.findAll()) {
             if (isGitHubRepo(link.url())) {
                 checkGitHubRepo(link);
@@ -38,31 +37,47 @@ public class LinkCheckService {
     }
 
     private void checkGitHubRepo(Link link) {
+
+
         String[] parts = link.url().split("/");
         String owner = parts[3];
-        System.out.println(owner);
         String repo = parts[4];
-        System.out.println(repo);
 
         gitHubClient.getRepository(owner, repo)
             .subscribe(gitHubRepo -> {
-                if (gitHubRepo.updatedAt() != null && !gitHubRepo.updatedAt().equals(linkRepository.getLastUpdated(link.url()))) {
-                    linkRepository.updateLastUpdated(link.url());
-                    sendUpdate(link);
+
+                if (!linkRepository.isInitialized(link.url())) {
+                    linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
+                    linkRepository.markInitialized(link.url());
+                    return;
+                }
+
+                if (gitHubRepo.pushedAt() != null && !gitHubRepo.getPushedAtAsDateTime()
+                    .equals(linkRepository.getLastUpdated(link.url()))) {
+                    linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
+                    sendUpdate(link, gitHubRepo);
                 }
             });
     }
 
-    private void sendUpdate(Link link) {
+    private void sendUpdate(Link link, GitHubRepository gitHubRepo) {
+        String message = String.format(
+            "🔔 Обновления в репозитории **%s**\n" +
+                "📅 Последний коммит: %s\n" +
+                "🔗 [Смотреть на GitHub](%s)",
+            gitHubRepo.name(),
+            gitHubRepo.getPushedAtAsDateTime(),
+            link.url()
+        );
 
         LinkUpdate update = new LinkUpdate(
             link.chatId(),
             link.url(),
-            "Обновления в репозитории: " + link.url(),
-            List.of(link.chatId()) // Список chatId для уведомлений
+            message,
+            List.of(link.chatId())
         );
 
-        // Отправляем обновление через BotHttpClient
+        log.info("Отправка уведомления: {}", message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
