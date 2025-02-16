@@ -26,7 +26,7 @@ public class TelegramBotService {
     private final Map<String, CommandHandler> commandHandlers;
     private final TrackDialog trackDialog;
 
-    public TelegramBotService(BotConfig botConfig, List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
+    public TelegramBotService(List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
         String botToken = System.getenv("TELEGRAM_TOKEN");
         this.telegramBot = new TelegramBot(botToken);
         this.commandHandlers = commandHandlers.stream()
@@ -54,7 +54,7 @@ public class TelegramBotService {
         });
     }
 
-    private void processUpdate(Update update) {
+    void processUpdate(Update update) {
         if (update.message() == null || update.message().text() == null) {
             log.info("Получено обновление без текста сообщения.");
             return;
@@ -62,7 +62,7 @@ public class TelegramBotService {
 
         long chatId = update.message().chat().id();
         String messageText = update.message().text().trim();
-        log.info("Получено сообщение от chatId: " + chatId + " с текстом: " + messageText);
+        log.info("Получено сообщение от chatId: {} с текстом: {}", chatId, messageText);
 
         // Обработка команд
         Optional<CommandHandler> handlerOpt = commandHandlers.values().stream()
@@ -73,12 +73,17 @@ public class TelegramBotService {
             CommandHandler handler = handlerOpt.get();
             SendMessage response = handler.handle(update);
             telegramBot.execute(response);
+        } else if (messageText.startsWith("/")) {
+            telegramBot.execute(new SendMessage(chatId, "Неизвестная команда: " + messageText + ". Введите /help"));
+            log.error("Неизвестная команда от пользователя {}: {}", chatId, messageText);
+            throw new IllegalArgumentException("Неизвестная команда: " + messageText);
         } else {
-            // Если это не команда, передаем в диалог
+            // Если это не команда, передаем в TrackDialog
             SendMessage response = trackDialog.handle(update);
             telegramBot.execute(response);
         }
     }
+
 
     private SetMyCommands createMenuCommand() {
         return new SetMyCommands(commandHandlers.values().stream().map(command -> new BotCommand(
