@@ -13,5 +13,11 @@ public class GitHubRepository {
 
     private long id;
     private String name;
+    private String fullName;
+    private String description;
+    private String htmlUrl;
+    private String language;
+    private int stargazersCount;
+    private String updatedAt;
 
 }
