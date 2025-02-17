@@ -61,10 +61,10 @@ public class ScrapperHttpClient {
             .uri("/links")
             .header("Tg-Chat-Id", String.valueOf(chatId))
             .bodyValue(request)
-            .exchange()
-            .doOnNext(response -> log.info("Received status: " + response.statusCode()))
-            .flatMap(response -> response.bodyToMono(LinkResponse.class));
+            .retrieve()
+            .bodyToMono(LinkResponse.class);
     }
+
 
 
 
