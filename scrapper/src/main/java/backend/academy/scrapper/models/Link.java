@@ -12,7 +12,7 @@ import java.util.List;
 @ToString
 public class Link {
     @JsonProperty("chatId")
-    private long chatId;
+    private Long chatId;
 
     @JsonProperty("url")
     private String url;
