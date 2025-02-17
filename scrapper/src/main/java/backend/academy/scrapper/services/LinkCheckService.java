@@ -27,7 +27,7 @@ public class LinkCheckService {
         this.botHttpClient = botHttpClient;
     }
 
-    @Scheduled(fixedRate = 5000) // Проверка раз в минуту
+    @Scheduled(fixedRate = 5000)
     public void checkLinks() {
         for (Link link : linkRepository.findAll()) {
             if (isGitHubRepo(link.url())) {
@@ -47,10 +47,13 @@ public class LinkCheckService {
             .subscribe(gitHubRepo -> {
 
                 if (!linkRepository.isInitialized(link.url())) {
-                    linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
+                    if (linkRepository.getLastUpdated(link.url()) == null) {
+                        linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
+                    }
                     linkRepository.markInitialized(link.url());
                     return;
                 }
+
 
                 if (gitHubRepo.pushedAt() != null && !gitHubRepo.getPushedAtAsDateTime()
                     .equals(linkRepository.getLastUpdated(link.url()))) {
