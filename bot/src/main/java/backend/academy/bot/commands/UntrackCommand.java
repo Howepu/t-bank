@@ -1,0 +1,48 @@
+package backend.academy.bot.commands;
+
+import backend.academy.bot.clients.ScrapperHttpClient;
+import backend.academy.bot.dto.RemoveLinkRequest;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@AllArgsConstructor
+public class UntrackCommand implements CommandHandler {
+
+    private final ScrapperHttpClient scrapperHttpClient;
+
+    @Override
+    public String command() {
+        return "/untrack";
+    }
+
+    @Override
+    public String description() {
+        return "Удалить отслеживаемую ссылку";
+    }
+
+    @Override
+    public SendMessage handle(Update update) {
+        Long chatId = update.message().chat().id();
+        String messageText = update.message().text().trim();
+
+        // Если пользователь не передал ссылку в сообщении
+        if (messageText.equals("/untrack")) {
+            return new SendMessage(chatId, "Введите ссылку, которую хотите удалить.")
+                .replyToMessageId(update.message().messageId());
+        }
+
+        // Если пользователь передал ссылку
+        String urlToRemove = messageText.replace("/untrack", "").trim();
+
+        RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(urlToRemove);
+
+        scrapperHttpClient.removeLink(chatId, removeLinkRequest);
+
+        return new SendMessage(chatId, "Ссылка удалена " + removeLinkRequest.url());
+
+
+    }
+}
