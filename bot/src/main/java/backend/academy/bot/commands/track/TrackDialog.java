@@ -1,9 +1,11 @@
-package backend.academy.bot.commands;
+package backend.academy.bot.commands.track;
 
 import backend.academy.bot.dto.AddLinkRequest;
 import backend.academy.bot.clients.ScrapperHttpClient;
+import backend.academy.bot.dto.ListLinksResponse;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Slf4j
 public class TrackDialog {
 
     private final ScrapperHttpClient scrapperHttpClient;
@@ -52,7 +55,7 @@ public class TrackDialog {
 
         // Если сообщение не начинается с /track и нет активного диалога, игнорируем
         if (!messageText.startsWith("/track") && !userStates.containsKey(chatId)) {
-            return new SendMessage(chatId, "").replyToMessageId(replyTo);  // Просто игнорируем
+            return new SendMessage(chatId, "").replyToMessageId(replyTo);
         }
 
         // Инициализируем состояния и данные пользователя, если их еще нет
@@ -60,17 +63,18 @@ public class TrackDialog {
         TrackedData data = userData.computeIfAbsent(chatId, k -> new TrackedData());
 
         switch (userStates.get(chatId)) {
+
             case AWAITING_URL:
                 if (messageText.startsWith("/track")) {
                     messageText = messageText.replace("/track", "").trim();
                 }
 
                 if (!messageText.isEmpty()) {
-                    // Проверяем, что ссылка принадлежит GitHub или StackOverflow
                     if (!isValidUrl(messageText)) {
                         return new SendMessage(chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
                             .replyToMessageId(replyTo);
-                    }
+                        }
+
 
                     data.url = messageText;
                     userStates.put(chatId, State.AWAITING_TAGS);
@@ -78,9 +82,11 @@ public class TrackDialog {
                         .replyToMessageId(replyTo);
                 }
 
-                // Если ссылки нет, просим ввести
                 return new SendMessage(chatId, "Введите ссылку для отслеживания")
                     .replyToMessageId(replyTo);
+
+
+
 
             case AWAITING_TAGS:
                 // Обрабатываем тэги

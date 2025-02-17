@@ -1,5 +1,6 @@
-package backend.academy.bot.commands;
+package backend.academy.bot.commands.track;
 
+import backend.academy.bot.commands.CommandHandler;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.stereotype.Component;
