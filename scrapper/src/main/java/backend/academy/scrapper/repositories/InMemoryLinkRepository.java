@@ -23,7 +23,7 @@ public class InMemoryLinkRepository implements LinkRepository {
     public Link save(Long chatId, Link link) {
         link.chatId(chatId);
         links.add(link);
-        linkLastUpdated.put(link.url(), LocalDateTime.now());
+        linkLastUpdated.put(link.url(), null);
         return link;
     }
 
@@ -45,7 +45,7 @@ public class InMemoryLinkRepository implements LinkRepository {
     public List<Link> findAllByChatId(Long chatId) {
         List<Link> chatLinks = new ArrayList<>();
         for (Link link : links) {
-            if (link.chatId() == chatId) {
+            if (link.chatId() != null && link.chatId().equals(chatId)) {  // Используем equals для сравнения
                 chatLinks.add(link);
             }
         }
