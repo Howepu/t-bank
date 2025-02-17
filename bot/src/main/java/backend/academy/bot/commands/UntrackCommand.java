@@ -39,7 +39,7 @@ public class UntrackCommand implements CommandHandler {
 
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(urlToRemove);
 
-        scrapperHttpClient.removeLink(chatId, removeLinkRequest);
+        scrapperHttpClient.removeLink(chatId, removeLinkRequest).block();
 
         return new SendMessage(chatId, "Ссылка удалена " + removeLinkRequest.url());
 
