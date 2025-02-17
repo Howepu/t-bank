@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -78,5 +79,64 @@ class LinkServiceTest {
 
         // Проверяем, что метод удаления был вызван
         verify(linkRepository, times(1)).remove(chatId, "http://example.com");
+    }
+
+    @Test
+    void addLink_shouldThrowException_whenChatNotRegistered() {
+        Long chatId = 123L;
+        Link link = new Link(chatId, "https://github.com/test/repo", null, null);
+
+        when(chatService.isChatRegistered(chatId)).thenReturn(false);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            linkService.addLink(chatId, link);
+        });
+        assertEquals("Чат не зарегистрирован", exception.getMessage());
+    }
+
+    @Test
+    void addLink_shouldThrowException_whenChatIdIsNull() {
+        Link link = new Link(null, "https://github.com/test/repo", null, null);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            linkService.addLink(null, link);
+        });
+        assertEquals("Чат не зарегистрирован", exception.getMessage());
+    }
+
+
+    @Test
+    void removeLink_shouldThrowException_whenChatNotRegistered() {
+        Long chatId = 123L;
+        String url = "https://github.com/test/repo";
+
+        when(chatService.isChatRegistered(chatId)).thenReturn(false);
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            linkService.removeLink(chatId, url);
+        });
+        assertEquals("Чат не зарегистрирован", exception.getMessage());
+    }
+
+    @Test
+    void removeLink_shouldThrowException_whenLinkNotFound() {
+        Long chatId = 123L;
+        String url = "https://github.com/test/repo";
+
+        when(chatService.isChatRegistered(chatId)).thenReturn(true);
+        when(linkRepository.remove(chatId, url)).thenReturn(null);
+
+        NoSuchElementException exception = assertThrows(NoSuchElementException.class, () -> {
+            linkService.removeLink(chatId, url);
+        });
+        assertEquals("Ссылка не найдена", exception.getMessage());
+    }
+
+    @Test
+    void getAllLinks_shouldThrowException_whenChatIdIsNull() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            linkService.getAllLinks(null);
+        });
+        assertEquals("Chat ID должен быть предоставлен и не может быть пустым", exception.getMessage());
     }
 }

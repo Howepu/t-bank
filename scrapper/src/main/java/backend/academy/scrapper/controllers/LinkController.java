@@ -31,7 +31,7 @@ public class LinkController {
 
     @PostMapping
     public ResponseEntity<LinkResponse> addLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody Link link) {
-        log.info("Удаление ссылки: {} для чата {}", link.url(), chatId);
+        log.info("Добавление ссылки: {} для чата {}", link.url(), chatId);
         Link savedLink = linkService.addLink(chatId, link);
         return ResponseEntity.ok(new LinkResponse(savedLink.chatId(), savedLink.url(), savedLink.tags(), savedLink.filters()));
     }
