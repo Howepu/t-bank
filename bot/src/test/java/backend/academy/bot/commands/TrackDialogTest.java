@@ -1,6 +1,7 @@
 package backend.academy.bot.commands;
 
 import backend.academy.bot.clients.ScrapperHttpClient;
+import backend.academy.bot.commands.track.TrackDialog;
 import backend.academy.bot.dto.AddLinkRequest;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;

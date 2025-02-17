@@ -1,8 +1,7 @@
 package backend.academy.bot.services;
 
-import backend.academy.bot.BotConfig;
 import backend.academy.bot.commands.CommandHandler;
-import backend.academy.bot.commands.TrackDialog;
+import backend.academy.bot.commands.track.TrackDialog;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
