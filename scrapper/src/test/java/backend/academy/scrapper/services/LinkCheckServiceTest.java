@@ -46,17 +46,13 @@ class LinkCheckServiceTest {
         Link link = new Link(chatId, url, null, null);
         GitHubRepository gitHubRepo = new GitHubRepository(1L, "repo", "main", "2025-02-16T12:00:00Z");
 
-        // Симулируем, что последняя дата обновления репозитория была вчера
         when(linkRepository.findAll()).thenReturn(List.of(link));
         when(linkRepository.isInitialized(url)).thenReturn(true);
-        when(linkRepository.getLastUpdated(url)).thenReturn(LocalDateTime.now().plusDays(1));  // Дата обновления + 1 день
+        when(linkRepository.getLastUpdated(url)).thenReturn(LocalDateTime.now().plusDays(1));
         when(gitHubClient.getRepository("user", "repo")).thenReturn(Mono.just(gitHubRepo));
 
-        // When
         linkCheckService.checkLinks();
 
-        // Then
-        // Проверяем, что метод отправки обновления был вызван
         verify(botHttpClient, times(1)).sendUpdate(any(LinkUpdate.class));
     }
 

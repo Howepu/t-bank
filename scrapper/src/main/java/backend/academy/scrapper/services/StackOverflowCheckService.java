@@ -80,7 +80,7 @@ public class StackOverflowCheckService {
         botHttpClient.sendUpdate(update).subscribe();
     }
 
-    private boolean isStackOverflowQuestion(String url) {
+    boolean isStackOverflowQuestion(String url) {
         // Проверяем, что URL соответствует формату вопроса на StackOverflow
         return url.matches("https://stackoverflow\\.com/questions/\\d+");
     }

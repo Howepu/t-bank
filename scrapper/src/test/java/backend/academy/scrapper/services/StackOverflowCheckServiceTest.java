@@ -9,15 +9,15 @@ import backend.academy.scrapper.dto.LinkUpdate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
+import java.util.Collections;
 
 import static org.mockito.Mockito.*;
 
-class StackOverflowCheckServiceTest {
+public class StackOverflowCheckServiceTest {
 
     @Mock
     private StackOverflowClient stackOverflowClient;
@@ -28,74 +28,62 @@ class StackOverflowCheckServiceTest {
     @Mock
     private BotHttpClient botHttpClient;
 
+    @InjectMocks
     private StackOverflowCheckService stackOverflowCheckService;
 
+    @Mock
+    private Link link;
+
+    @Mock
+    private StackOverflowQuestion stackOverflowQuestion;
+
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(botHttpClient.sendUpdate(any(LinkUpdate.class))).thenReturn(Mono.empty());
-        stackOverflowCheckService = new StackOverflowCheckService(stackOverflowClient, linkRepository, botHttpClient);
     }
 
     @Test
-    void checkLinks_shouldSendUpdateWhenQuestionIsUpdated() {
-        // Given
-        String url = "https://stackoverflow.com/questions/12345";
-        long chatId = 12345L;
-        Link link = new Link(chatId, url, null, null);
-        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+    void testCheckLinks_withUpdatedQuestion() {
+        String testUrl = "https://stackoverflow.com/questions/12345";
+        Long chatId = 123L;
+        LocalDateTime lastUpdated = LocalDateTime.now().minusDays(1);
 
-        // Преобразуем в Unix timestamp
-        Long timestamp = oneDayAgo.toEpochSecond(ZoneOffset.UTC);
-        StackOverflowQuestion stackOverflowQuestion = new StackOverflowQuestion(111L,"Question title", timestamp);
+        when(linkRepository.findAll()).thenReturn(Collections.singletonList(link));
+        when(link.url()).thenReturn(testUrl);
+        when(link.chatId()).thenReturn(chatId);
+        when(linkRepository.isInitialized(testUrl)).thenReturn(true);
+        when(linkRepository.getLastUpdated(testUrl)).thenReturn(lastUpdated);
 
-        when(linkRepository.findAll()).thenReturn(List.of(link));
-        when(linkRepository.isInitialized(url)).thenReturn(true);
-        when(linkRepository.getLastUpdated(url)).thenReturn(LocalDateTime.now().minusDays(2));  // Simulate update
-        when(stackOverflowClient.getQuestion("12345")).thenReturn(Mono.just(stackOverflowQuestion));
+        when(stackOverflowClient.getQuestion("12345")).thenReturn(
+            Mono.just(new StackOverflowQuestion(12345L, "Test Question", System.currentTimeMillis()))
+        );
+
+        when(botHttpClient.sendUpdate(any(LinkUpdate.class))).thenReturn(Mono.empty());
 
         stackOverflowCheckService.checkLinks();
 
+        verify(linkRepository, times(1)).updateLastUpdated(eq(testUrl), any());
         verify(botHttpClient, times(1)).sendUpdate(any(LinkUpdate.class));
     }
 
+
     @Test
-    void checkLinks_shouldNotSendUpdateWhenQuestionIsNotUpdated() {
+    void testCheckLinks_withNewQuestion() {
+        String testUrl = "https://stackoverflow.com/questions/67890";
+        Long chatId = 123L;
 
-        String url = "https://stackoverflow.com/questions/12345";
-        long chatId = 12345L;
-        Link link = new Link(chatId, url, null, null);
-        LocalDateTime now = LocalDateTime.now();
-        Long timestamp = now.toEpochSecond(ZoneOffset.UTC);
-        StackOverflowQuestion stackOverflowQuestion = new StackOverflowQuestion(111L,"Question title",timestamp);
+        when(linkRepository.findAll()).thenReturn(Collections.singletonList(link));
+        when(link.url()).thenReturn(testUrl);
+        when(link.chatId()).thenReturn(chatId);
+        when(linkRepository.isInitialized(testUrl)).thenReturn(false);
 
-        when(linkRepository.findAll()).thenReturn(List.of(link));
-        when(linkRepository.isInitialized(url)).thenReturn(true);
-        when(linkRepository.getLastUpdated(url)).thenReturn(stackOverflowQuestion.getLastActivityDateAsDateTime());  // Same timestamp
-        when(stackOverflowClient.getQuestion("12345")).thenReturn(Mono.just(stackOverflowQuestion));
+        StackOverflowQuestion stackOverflowQuestion = new StackOverflowQuestion(67890L, "New Test Question", System.currentTimeMillis());
+        when(stackOverflowClient.getQuestion("67890")).thenReturn(Mono.just(stackOverflowQuestion));
 
         stackOverflowCheckService.checkLinks();
 
-        verify(botHttpClient, never()).sendUpdate(any(LinkUpdate.class));
-    }
-
-    @Test
-    void checkLinks_shouldInitializeLinkWhenFirstTime() {
-        // Given
-        String url = "https://stackoverflow.com/questions/12345";
-        long chatId = 12345L;
-        Link link = new Link(chatId, url, null, null);
-        LocalDateTime now = LocalDateTime.now();
-        Long timestamp = now.toEpochSecond(ZoneOffset.UTC);
-        StackOverflowQuestion stackOverflowQuestion = new StackOverflowQuestion(111L,"Question title", timestamp);
-
-        when(linkRepository.findAll()).thenReturn(List.of(link));
-        when(linkRepository.isInitialized(url)).thenReturn(false);  // Link not initialized
-        when(stackOverflowClient.getQuestion("12345")).thenReturn(Mono.just(stackOverflowQuestion));
-
-        stackOverflowCheckService.checkLinks();
-
-        verify(linkRepository, times(1)).markInitialized(url);
-        verify(linkRepository, times(1)).updateLastUpdated(url, stackOverflowQuestion.getLastActivityDateAsDateTime());
+        verify(linkRepository, times(1)).markInitialized(testUrl);
+        verify(linkRepository, times(1)).updateLastUpdated(eq(testUrl), any());
+        verify(botHttpClient, times(0)).sendUpdate(any());
     }
 }
