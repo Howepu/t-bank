@@ -28,17 +28,15 @@ class TelegramBotServiceTest {
         telegramBot = mock(TelegramBot.class);
         trackDialog = mock(TrackDialog.class);
 
-        // Создаём список команд (пусть будет пустой)
         List<CommandHandler> commandHandlers = List.of();
         telegramBotService = new TelegramBotService(commandHandlers, trackDialog);
     }
 
     @Test
     void testUnknownCommandThrowsException() {
-        // Мокируем update с неизвестной командой
+
         Update update = mockUpdate(12345L, "/unknowncommand");
 
-        // Проверяем, что метод выбрасывает исключение
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             telegramBotService.processUpdate(update);
         });
