@@ -31,6 +31,7 @@ public class LinkCheckService {
     public void checkLinks() {
         for (Link link : linkRepository.findAll()) {
             if (isGitHubRepo(link.url())) {
+                log.info(String.valueOf(link));
                 checkGitHubRepo(link);
             }
         }

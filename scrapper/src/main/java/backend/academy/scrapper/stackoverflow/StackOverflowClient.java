@@ -22,6 +22,7 @@ public class StackOverflowClient {
         return webClient.get()
             .uri("/questions/{id}?site=stackoverflow", questionId)
             .retrieve()
-            .bodyToMono(StackOverflowQuestion.class);
+            .bodyToMono(StackOverflowResponse.class)
+            .map(response -> response.items().get(0));
     }
 }
