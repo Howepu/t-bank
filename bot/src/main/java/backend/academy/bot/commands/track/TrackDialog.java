@@ -73,7 +73,7 @@ public class TrackDialog {
                     if (!isValidUrl(messageText)) {
                         return new SendMessage(chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
                             .replyToMessageId(replyTo);
-                        }
+                    }
 
 
                     data.url = messageText;

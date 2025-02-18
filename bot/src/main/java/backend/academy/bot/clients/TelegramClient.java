@@ -19,7 +19,7 @@ public class TelegramClient {
 
     public void sendMessage(Long chatId, String message) {
         SendMessage request = new SendMessage(chatId, message);
-        log.info("Отправка сообщения в chatId: {} - {}", chatId, message);  // Логируем отправку сообщения
+        log.info("Отправка сообщения в chatId: {} - {}", chatId, message);
         telegramBot.execute(request);
     }
 }

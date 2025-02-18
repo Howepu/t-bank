@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/links")
 @AllArgsConstructor
@@ -22,33 +21,39 @@ public class LinkController {
 
     @GetMapping
     public ResponseEntity<ListLinksResponse> getAllLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
+        log.info("Запрос всех ссылок для чата {}", chatId);
+
         List<LinkResponse> links = linkService.getAllLinks(chatId).stream()
             .map(link -> new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters()))
             .toList();
 
+        log.info("Найдено {} ссылок для чата {}", links.size(), chatId);
         return ResponseEntity.ok(new ListLinksResponse(links, links.size()));
     }
 
     @PostMapping
     public ResponseEntity<LinkResponse> addLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody Link link) {
-        log.info("Добавление ссылки: {} для чата {}", link.url(), chatId);
+        log.info("Добавление новой ссылки: {} для чата {}", link.url(), chatId);
+
         Link savedLink = linkService.addLink(chatId, link);
+        log.info("Ссылка успешно добавлена: {} для чата {}", savedLink.url(), chatId);
+
         return ResponseEntity.ok(new LinkResponse(savedLink.chatId(), savedLink.url(), savedLink.tags(), savedLink.filters()));
     }
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> removeLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest removeLinkRequest) {
-        log.info("Удаление ссылки: {} для чата {}", removeLinkRequest.url(), chatId);
+        log.info("Запрос на удаление ссылки: {} для чата {}", removeLinkRequest.url(), chatId);
 
         Link link = linkService.removeLink(chatId, removeLinkRequest.url());
 
         if (link == null) {
-            log.warn("Ссылка {} не найдена для чата {}", removeLinkRequest.url(), chatId);
+            log.warn("Попытка удалить несуществующую ссылку: {} для чата {}", removeLinkRequest.url(), chatId);
             return ResponseEntity.notFound().build();
         }
 
+        log.info("Ссылка успешно удалена: {} для чата {}", link.url(), chatId);
         return ResponseEntity.ok(new LinkResponse(link.chatId(), link.url(), link.tags(), link.filters()));
     }
 
 }
-

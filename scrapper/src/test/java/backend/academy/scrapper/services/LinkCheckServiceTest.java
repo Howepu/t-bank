@@ -83,7 +83,7 @@ class LinkCheckServiceTest {
         GitHubRepository gitHubRepo = new GitHubRepository(1L, "repo", "main", "2025-02-16T12:00:00Z");
 
         when(linkRepository.findAll()).thenReturn(List.of(link));
-        when(linkRepository.isInitialized(url)).thenReturn(false);  // Link not initialized
+        when(linkRepository.isInitialized(url)).thenReturn(false);
         when(gitHubClient.getRepository("user", "repo")).thenReturn(Mono.just(gitHubRepo));
 
         linkCheckService.checkLinks();

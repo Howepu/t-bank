@@ -45,21 +45,18 @@ class TrackDialogTest {
         Update update = mockUpdate(chatId, "/track https://github.com/example/repo");
 
         when(scrapperHttpClient.addLink(anyLong(), any(AddLinkRequest.class)))
-            .thenReturn(Mono.empty());  // Эмулируем успешный вызов
+            .thenReturn(Mono.empty());
 
-        // Первый шаг (ввод ссылки)
         var response = trackDialog.handle(update);
         assertNotNull(response);
         assertEquals("Введите тэги через запятую (опционально). Введите - для пропуска",
             response.getParameters().get("text"));
 
-        // Второй шаг (ввод тегов)
         update = mockUpdate(chatId, "java, backend");
         response = trackDialog.handle(update);
         assertEquals("Настройте фильтры через запятую (опционально). Введите - для пропуска",
             response.getParameters().get("text"));
 
-        // Третий шаг (ввод фильтров)
         update = mockUpdate(chatId, "-");
         response = trackDialog.handle(update);
 
