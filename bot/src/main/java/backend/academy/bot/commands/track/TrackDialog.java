@@ -75,6 +75,18 @@ public class TrackDialog {
                             .replyToMessageId(replyTo);
                     }
 
+                    try {
+                        ListLinksResponse linksResponse = scrapperHttpClient.getLinks(chatId).block();
+                        String finalMessageText = messageText;
+                        if (linksResponse != null && linksResponse.links().stream().anyMatch(link -> link.url().equals(finalMessageText))) {
+                            return new SendMessage(chatId, "Эта ссылка уже отслеживается.")
+                                .replyToMessageId(replyTo);
+                        }
+                    } catch (Exception e) {
+                        log.error("Ошибка при получении списка ссылок: ", e);
+                        return new SendMessage(chatId, "Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже.")
+                            .replyToMessageId(replyTo);
+                    }
 
                     data.url = messageText;
                     userStates.put(chatId, State.AWAITING_TAGS);
@@ -84,7 +96,6 @@ public class TrackDialog {
 
                 return new SendMessage(chatId, "Введите ссылку для отслеживания")
                     .replyToMessageId(replyTo);
-
 
 
 
@@ -122,26 +133,6 @@ public class TrackDialog {
                 return new SendMessage(chatId, "Введите ссылку для отслеживания")
                     .replyToMessageId(replyTo);
         }
-    }
-
-
-
-    // Метод, чтобы сразу передать URL
-    public SendMessage handleUrl(Update update, String url) {
-        Long chatId = update.message().chat().id();
-        int replyTo = update.message().messageId();
-        userStates.putIfAbsent(chatId, State.AWAITING_TAGS);
-        TrackedData data = userData.computeIfAbsent(chatId, k -> new TrackedData());
-
-        if (!isValidUrl(url)) {
-            return new SendMessage(chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
-                .replyToMessageId(replyTo);
-        }
-
-        data.url = url;
-        userStates.put(chatId, State.AWAITING_TAGS);
-        return new SendMessage(chatId, "Введите тэги через запятую (опционально)")
-            .replyToMessageId(replyTo);
     }
 
     private boolean isValidUrl(String url) {
