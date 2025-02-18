@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -46,19 +47,22 @@ public class LinkCheckService {
         gitHubClient.getRepository(owner, repo)
             .subscribe(gitHubRepo -> {
                 log.info("Проверка репозитория: {}", link.url());
-                log.info("Последнее обновление в репозитории: {}", gitHubRepo.getPushedAtAsDateTime());
+                String pushedAtString = gitHubRepo.pushedAt();  // Assuming it's a string
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+                LocalDateTime pushedAt = LocalDateTime.parse(pushedAtString, formatter);
+
+                log.info("Последнее обновление в репозитории: {}", pushedAt);
                 log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
 
                 if (!linkRepository.isInitialized(link.url())) {
                     if (linkRepository.getLastUpdated(link.url()) == null) {
-                        linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
+                        linkRepository.updateLastUpdated(link.url(), pushedAt);
                     }
                     linkRepository.markInitialized(link.url());
                     return;
                 }
 
-                if (gitHubRepo.pushedAt() != null && linkRepository.getLastUpdated(link.url()) != null) {
-                    LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
+                if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
                     LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
 
                     if (pushedAt.isAfter(lastUpdated)) {
