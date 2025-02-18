@@ -3,6 +3,7 @@ package backend.academy.scrapper.repositories;
 import backend.academy.scrapper.models.Chat;
 import org.springframework.stereotype.Repository;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,11 +20,7 @@ public class InMemoryChatRepository implements ChatRepository {
 
     @Override
     public void remove(Long id) {
-        for (Chat chat : registeredChats) {
-            if (Objects.equals(chat.id(), id)) {
-                registeredChats.remove(chat);
-            }
-        }
+        registeredChats.removeIf(chat -> Objects.equals(chat.id(), id));
     }
 
     @Override

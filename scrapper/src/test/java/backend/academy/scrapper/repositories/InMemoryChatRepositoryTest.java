@@ -24,14 +24,16 @@ public class InMemoryChatRepositoryTest {
 
     @Test
     void remove_shouldRemoveChat() {
-        Long chatId = 123456789L;
+        Long chatId = 12345678L;
 
         chatRepository.save(chatId);
+        assertTrue(chatRepository.isChatRegistered(chatId)); // Убеждаемся, что чат добавлен
 
         chatRepository.remove(chatId);
 
         assertFalse(chatRepository.isChatRegistered(chatId), "Chat should be removed");
     }
+
 
     @Test
     void isChatRegistered_shouldReturnFalseWhenChatNotExists() {
