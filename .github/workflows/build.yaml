@@ -3,6 +3,9 @@ name: Build
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - homework1
 
 jobs:
   build:
@@ -17,26 +20,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          java-version: '22'
+          java-version: '23'
           distribution: 'temurin'
           cache: maven
 
       - name: maven build
-        run: mvn package
+        run: mvn verify
 
       - id: jacoco
-        uses: madrapps/jacoco-report@v1.6.1
+        uses: madrapps/jacoco-report@v1.7.1
         if: ( github.event_name != 'workflow_dispatch' )
         with:
-          paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
+          paths: ${{ github.workspace }}/report/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 30
           min-coverage-changed-files: 30
           title: Code Coverage
           update-comment: true
 
-  checkstyle:
-    name: checkstyle
+  linter:
+    name: linter
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,8 +50,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          java-version: '22'
+          java-version: '23'
           distribution: 'temurin'
           cache: maven
 
-      - run: mvn checkstyle:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
+      - run: mvn compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
