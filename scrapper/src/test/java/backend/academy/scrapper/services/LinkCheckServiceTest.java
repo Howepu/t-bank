@@ -48,7 +48,8 @@ class LinkCheckServiceTest {
 
         when(linkRepository.findAll()).thenReturn(List.of(link));
         when(linkRepository.isInitialized(url)).thenReturn(true);
-        when(linkRepository.getLastUpdated(url)).thenReturn(LocalDateTime.now().plusDays(1));
+        when(linkRepository.getLastUpdated(url)).thenReturn(LocalDateTime.of(2025, 2, 15, 10, 0));
+
         when(gitHubClient.getRepository("user", "repo")).thenReturn(Mono.just(gitHubRepo));
 
         linkCheckService.checkLinks();

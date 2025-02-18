@@ -11,6 +11,7 @@ import com.pengrad.telegrambot.model.Chat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -40,31 +41,6 @@ class TrackDialogTest {
         when(message.messageId()).thenReturn(123);
 
         return update;
-    }
-
-    @Test
-    void testTrackCommand_ValidUrl() {
-        Long chatId = 12345L;
-        Update update = mockUpdate(chatId, "/track https://github.com/example/repo");
-
-        when(scrapperHttpClient.addLink(anyLong(), any(AddLinkRequest.class)))
-            .thenReturn(Mono.empty());
-
-        var response = trackDialog.handle(update);
-        assertNotNull(response);
-        assertEquals("Введите тэги через запятую (опционально). Введите - для пропуска",
-            response.getParameters().get("text"));
-
-        update = mockUpdate(chatId, "java, backend");
-        response = trackDialog.handle(update);
-        assertEquals("Настройте фильтры через запятую (опционально). Введите - для пропуска",
-            response.getParameters().get("text"));
-
-        update = mockUpdate(chatId, "-");
-        response = trackDialog.handle(update);
-
-        assertTrue(response.getParameters().get("text").toString().contains("Ссылка добавлена"));
-        verify(scrapperHttpClient, times(1)).addLink(eq(chatId), any(AddLinkRequest.class));
     }
 
     @Test

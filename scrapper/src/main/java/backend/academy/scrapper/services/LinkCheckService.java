@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,14 +39,15 @@ public class LinkCheckService {
     }
 
     private void checkGitHubRepo(Link link) {
-
-
         String[] parts = link.url().split("/");
         String owner = parts[3];
         String repo = parts[4];
 
         gitHubClient.getRepository(owner, repo)
             .subscribe(gitHubRepo -> {
+                log.info("Проверка репозитория: {}", link.url());
+                log.info("Последнее обновление в репозитории: {}", gitHubRepo.getPushedAtAsDateTime());
+                log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
 
                 if (!linkRepository.isInitialized(link.url())) {
                     if (linkRepository.getLastUpdated(link.url()) == null) {
@@ -55,11 +57,15 @@ public class LinkCheckService {
                     return;
                 }
 
+                if (gitHubRepo.pushedAt() != null && linkRepository.getLastUpdated(link.url()) != null) {
+                    LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
+                    LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
 
-                if (gitHubRepo.pushedAt() != null && !gitHubRepo.getPushedAtAsDateTime()
-                    .equals(linkRepository.getLastUpdated(link.url()))) {
-                    linkRepository.updateLastUpdated(link.url(), gitHubRepo.getPushedAtAsDateTime());
-                    sendUpdate(link, gitHubRepo);
+                    if (pushedAt.isAfter(lastUpdated)) {
+                        log.info("Обнаружено новое обновление для репозитория: {}", link.url());
+                        linkRepository.updateLastUpdated(link.url(), pushedAt);
+                        sendUpdate(link, gitHubRepo);
+                    }
                 }
             });
     }
