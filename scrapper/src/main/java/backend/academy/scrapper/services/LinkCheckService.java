@@ -1,29 +1,31 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.github.GitHubClient;
-import backend.academy.scrapper.github.GitHubRepository;
-import backend.academy.scrapper.repositories.InMemoryLinkRepository;
-import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.bot.BotHttpClient;
 import backend.academy.scrapper.dto.LinkUpdate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
+import backend.academy.scrapper.github.GitHubClient;
+import backend.academy.scrapper.github.GitHubRepository;
+import backend.academy.scrapper.models.Link;
+import backend.academy.scrapper.repositories.InMemoryLinkRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 public class LinkCheckService {
 
+    private static final String GITHUB_REPO_URL_PATTERN = "https://github\\.com/[^/]+/[^/]+";
+    private static final String UPDATE_MESSAGE_TEMPLATE =
+            "🔔 Обновления в репозитории **%s**%n" + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
     private final GitHubClient gitHubClient;
     private final InMemoryLinkRepository linkRepository;
     private final BotHttpClient botHttpClient;
 
-    public LinkCheckService(GitHubClient gitHubClient, InMemoryLinkRepository linkRepository,
-                            BotHttpClient botHttpClient) {
+    public LinkCheckService(
+            GitHubClient gitHubClient, InMemoryLinkRepository linkRepository, BotHttpClient botHttpClient) {
         this.gitHubClient = gitHubClient;
         this.linkRepository = linkRepository;
         this.botHttpClient = botHttpClient;
@@ -33,7 +35,7 @@ public class LinkCheckService {
     public void checkLinks() {
         for (Link link : linkRepository.findAll()) {
             if (isGitHubRepo(link.url())) {
-                log.info(String.valueOf(link));
+                log.info("Проверка репозитория: {}", link.url());
                 checkGitHubRepo(link);
             }
         }
@@ -44,52 +46,40 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        gitHubClient.getRepository(owner, repo)
-            .subscribe(gitHubRepo -> {
-                log.info("Проверка репозитория: {}", link.url());
-                String pushedAtString = gitHubRepo.pushedAt();  // Assuming it's a string
-                DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-                LocalDateTime pushedAt = LocalDateTime.parse(pushedAtString, formatter);
+        gitHubClient.getRepository(owner, repo).subscribe(gitHubRepo -> {
+            log.info("Проверка репозитория: {}", link.url());
+            String pushedAtString = gitHubRepo.pushedAt(); // Assuming it's a string
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            LocalDateTime pushedAt = LocalDateTime.parse(pushedAtString, formatter);
 
-                log.info("Последнее обновление в репозитории: {}", pushedAt);
-                log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
+            log.info("Последнее обновление в репозитории: {}", pushedAt);
+            log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
 
-                if (!linkRepository.isInitialized(link.url())) {
-                    if (linkRepository.getLastUpdated(link.url()) == null) {
-                        linkRepository.updateLastUpdated(link.url(), pushedAt);
-                    }
-                    linkRepository.markInitialized(link.url());
-                    return;
+            if (!linkRepository.isInitialized(link.url())) {
+                if (linkRepository.getLastUpdated(link.url()) == null) {
+                    linkRepository.updateLastUpdated(link.url(), pushedAt);
                 }
+                linkRepository.markInitialized(link.url());
+                return;
+            }
 
-                if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
-                    LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
+            if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
+                LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
 
-                    if (pushedAt.isAfter(lastUpdated)) {
-                        log.info("Обнаружено новое обновление для репозитория: {}", link.url());
-                        linkRepository.updateLastUpdated(link.url(), pushedAt);
-                        sendUpdate(link, gitHubRepo);
-                    }
+                if (pushedAt.isAfter(lastUpdated)) {
+                    log.info("Обнаружено новое обновление для репозитория: {}", link.url());
+                    linkRepository.updateLastUpdated(link.url(), pushedAt);
+                    sendUpdate(link, gitHubRepo);
                 }
-            });
+            }
+        });
     }
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepo) {
         String message = String.format(
-            "🔔 Обновления в репозитории **%s**\n" +
-                "📅 Последний коммит: %s\n" +
-                "🔗 [Смотреть на GitHub](%s)",
-            gitHubRepo.name(),
-            gitHubRepo.getPushedAtAsDateTime(),
-            link.url()
-        );
+                UPDATE_MESSAGE_TEMPLATE, gitHubRepo.name(), gitHubRepo.getPushedAtAsDateTime(), link.url());
 
-        LinkUpdate update = new LinkUpdate(
-            link.chatId(),
-            link.url(),
-            message,
-            List.of(link.chatId())
-        );
+        LinkUpdate update = new LinkUpdate(link.chatId(), link.url(), message, List.of(link.chatId()));
 
         log.info("Отправка уведомления: {}", message);
         botHttpClient.sendUpdate(update).subscribe();
@@ -97,6 +87,6 @@ public class LinkCheckService {
 
     private boolean isGitHubRepo(String url) {
         // Проверяем, что URL соответствует формату GitHub репозитория
-        return url.matches("https://github\\.com/[^/]+/[^/]+");
+        return url.matches(GITHUB_REPO_URL_PATTERN);
     }
 }

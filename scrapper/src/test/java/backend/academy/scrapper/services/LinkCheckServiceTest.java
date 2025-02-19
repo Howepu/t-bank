@@ -1,22 +1,19 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.github.GitHubClient;
-import backend.academy.scrapper.github.GitHubRepository;
-import backend.academy.scrapper.repositories.InMemoryLinkRepository;
-import backend.academy.scrapper.models.Link;
+import static org.mockito.Mockito.*;
+
 import backend.academy.scrapper.bot.BotHttpClient;
 import backend.academy.scrapper.dto.LinkUpdate;
+import backend.academy.scrapper.github.GitHubClient;
+import backend.academy.scrapper.github.GitHubRepository;
+import backend.academy.scrapper.models.Link;
+import backend.academy.scrapper.repositories.InMemoryLinkRepository;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
 
 class LinkCheckServiceTest {
 
@@ -67,7 +64,7 @@ class LinkCheckServiceTest {
 
         when(linkRepository.findAll()).thenReturn(List.of(link));
         when(linkRepository.isInitialized(url)).thenReturn(true);
-        when(linkRepository.getLastUpdated(url)).thenReturn(gitHubRepo.getPushedAtAsDateTime());  // Same timestamp
+        when(linkRepository.getLastUpdated(url)).thenReturn(gitHubRepo.getPushedAtAsDateTime()); // Same timestamp
         when(gitHubClient.getRepository("user", "repo")).thenReturn(Mono.just(gitHubRepo));
 
         linkCheckService.checkLinks();
@@ -93,4 +90,3 @@ class LinkCheckServiceTest {
         verify(linkRepository, times(1)).updateLastUpdated(url, gitHubRepo.getPushedAtAsDateTime());
     }
 }
-

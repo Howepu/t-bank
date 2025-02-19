@@ -31,7 +31,7 @@ public class UntrackCommand implements CommandHandler {
         // Если пользователь не передал ссылку в сообщении
         if (messageText.equals("/untrack")) {
             return new SendMessage(chatId, "Введите ссылку, которую хотите удалить.")
-                .replyToMessageId(update.message().messageId());
+                    .replyToMessageId(update.message().messageId());
         }
 
         // Если пользователь передал ссылку
@@ -42,7 +42,5 @@ public class UntrackCommand implements CommandHandler {
         scrapperHttpClient.removeLink(chatId, removeLinkRequest).block();
 
         return new SendMessage(chatId, "Ссылка удалена " + removeLinkRequest.url());
-
-
     }
 }

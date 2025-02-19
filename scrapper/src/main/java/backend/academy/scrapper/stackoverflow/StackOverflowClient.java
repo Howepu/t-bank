@@ -12,17 +12,19 @@ public class StackOverflowClient {
     private final WebClient webClient;
 
     public StackOverflowClient(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("https://api.stackexchange.com/2.3")
-            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .build();
+        this.webClient = webClientBuilder
+                .baseUrl("https://api.stackexchange.com/2.3")
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
     }
 
     // Получаем данные о вопросе по ID
     public Mono<StackOverflowQuestion> getQuestion(String questionId) {
-        return webClient.get()
-            .uri("/questions/{id}?site=stackoverflow", questionId)
-            .retrieve()
-            .bodyToMono(StackOverflowResponse.class)
-            .map(response -> response.items().get(0));
+        return webClient
+                .get()
+                .uri("/questions/{id}?site=stackoverflow", questionId)
+                .retrieve()
+                .bodyToMono(StackOverflowResponse.class)
+                .map(response -> response.items().get(0));
     }
 }

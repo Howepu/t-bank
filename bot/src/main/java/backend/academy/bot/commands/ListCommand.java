@@ -26,17 +26,18 @@ public class ListCommand implements CommandHandler {
     public SendMessage handle(Update update) {
         long chatId = update.message().chat().id();
 
-        return scrapperHttpClient.getLinks(chatId)
-            .map(response -> {
-                if (response.links().isEmpty()) {
-                    return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
-                }
-                String links = response.links().stream()
-                    .map(link -> "- " + link.url())
-                    .reduce("", (a, b) -> a + "\n" + b);
-                return new SendMessage(chatId, "Ваши отслеживаемые ссылки:\n" + links);
-            })
-            .defaultIfEmpty(new SendMessage(chatId, "Ошибка получения списка ссылок."))
-            .block();
+        return scrapperHttpClient
+                .getLinks(chatId)
+                .map(response -> {
+                    if (response.links().isEmpty()) {
+                        return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
+                    }
+                    String links = response.links().stream()
+                            .map(link -> "- " + link.url())
+                            .reduce("", (a, b) -> a + "\n" + b);
+                    return new SendMessage(chatId, "Ваши отслеживаемые ссылки:\n" + links);
+                })
+                .defaultIfEmpty(new SendMessage(chatId, "Ошибка получения списка ссылок."))
+                .block();
     }
 }

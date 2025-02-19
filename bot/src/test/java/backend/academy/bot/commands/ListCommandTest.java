@@ -1,5 +1,8 @@
 package backend.academy.bot.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
 import backend.academy.bot.clients.ScrapperHttpClient;
 import backend.academy.bot.dto.LinkResponse;
 import backend.academy.bot.dto.ListLinksResponse;
@@ -7,17 +10,13 @@ import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ListCommandTest {
@@ -33,10 +32,11 @@ class ListCommandTest {
         long chatId = 12345L;
         Update update = mockUpdate(chatId, "/list");
 
-        ListLinksResponse response = new ListLinksResponse(List.of(
-            new LinkResponse(chatId, "https://example.com", List.of("tag1"), List.of("filter1")),
-            new LinkResponse(chatId, "https://github.com", List.of(), List.of())
-        ), 2);
+        ListLinksResponse response = new ListLinksResponse(
+                List.of(
+                        new LinkResponse(chatId, "https://example.com", List.of("tag1"), List.of("filter1")),
+                        new LinkResponse(chatId, "https://github.com", List.of(), List.of())),
+                2);
 
         when(scrapperHttpClient.getLinks(chatId)).thenReturn(Mono.just(response));
 
@@ -57,7 +57,9 @@ class ListCommandTest {
         SendMessage message = listCommand.handle(update);
 
         assertEquals(chatId, message.getParameters().get("chat_id"));
-        assertEquals("Вы пока не отслеживаете ни одной ссылки.", message.getParameters().get("text"));
+        assertEquals(
+                "Вы пока не отслеживаете ни одной ссылки.",
+                message.getParameters().get("text"));
     }
 
     @Test

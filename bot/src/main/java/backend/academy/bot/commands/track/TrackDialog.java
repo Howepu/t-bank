@@ -1,17 +1,16 @@
 package backend.academy.bot.commands.track;
 
-import backend.academy.bot.dto.AddLinkRequest;
 import backend.academy.bot.clients.ScrapperHttpClient;
+import backend.academy.bot.dto.AddLinkRequest;
 import backend.academy.bot.dto.ListLinksResponse;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -39,11 +38,7 @@ public class TrackDialog {
 
         @Override
         public String toString() {
-            return "TrackedData{" +
-                "filters=" + filters +
-                ", url='" + url + '\'' +
-                ", tags=" + tags +
-                '}';
+            return "TrackedData{" + "filters=" + filters + ", url='" + url + '\'' + ", tags=" + tags + '}';
         }
     }
 
@@ -63,7 +58,6 @@ public class TrackDialog {
         TrackedData data = userData.computeIfAbsent(chatId, k -> new TrackedData());
 
         switch (userStates.get(chatId)) {
-
             case AWAITING_URL:
                 if (messageText.startsWith("/track")) {
                     messageText = messageText.replace("/track", "").trim();
@@ -71,33 +65,34 @@ public class TrackDialog {
 
                 if (!messageText.isEmpty()) {
                     if (!isValidUrl(messageText)) {
-                        return new SendMessage(chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
-                            .replyToMessageId(replyTo);
+                        return new SendMessage(
+                                        chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
+                                .replyToMessageId(replyTo);
                     }
 
                     try {
-                        ListLinksResponse linksResponse = scrapperHttpClient.getLinks(chatId).block();
+                        ListLinksResponse linksResponse =
+                                scrapperHttpClient.getLinks(chatId).block();
                         String finalMessageText = messageText;
-                        if (linksResponse != null && linksResponse.links().stream().anyMatch(link -> link.url().equals(finalMessageText))) {
-                            return new SendMessage(chatId, "Эта ссылка уже отслеживается.")
-                                .replyToMessageId(replyTo);
+                        if (linksResponse != null
+                                && linksResponse.links().stream()
+                                        .anyMatch(link -> link.url().equals(finalMessageText))) {
+                            return new SendMessage(chatId, "Эта ссылка уже отслеживается.").replyToMessageId(replyTo);
                         }
                     } catch (Exception e) {
                         log.error("Ошибка при получении списка ссылок: ", e);
-                        return new SendMessage(chatId, "Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже.")
-                            .replyToMessageId(replyTo);
+                        return new SendMessage(
+                                        chatId, "Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже.")
+                                .replyToMessageId(replyTo);
                     }
 
                     data.url = messageText;
                     userStates.put(chatId, State.AWAITING_TAGS);
                     return new SendMessage(chatId, "Введите тэги через запятую (опционально). Введите - для пропуска")
-                        .replyToMessageId(replyTo);
+                            .replyToMessageId(replyTo);
                 }
 
-                return new SendMessage(chatId, "Введите ссылку для отслеживания")
-                    .replyToMessageId(replyTo);
-
-
+                return new SendMessage(chatId, "Введите ссылку для отслеживания").replyToMessageId(replyTo);
 
             case AWAITING_TAGS:
                 // Обрабатываем тэги
@@ -107,7 +102,7 @@ public class TrackDialog {
 
                 userStates.put(chatId, State.AWAITING_FILTERS);
                 return new SendMessage(chatId, "Настройте фильтры через запятую (опционально). Введите - для пропуска")
-                    .replyToMessageId(replyTo);
+                        .replyToMessageId(replyTo);
 
             case AWAITING_FILTERS:
                 // Обрабатываем фильтры
@@ -121,17 +116,18 @@ public class TrackDialog {
                 scrapperHttpClient.addLink(chatId, addLinkRequest).subscribe();
 
                 userData.remove(chatId);
-                userStates.remove(chatId);  // Завершаем диалог
+                userStates.remove(chatId); // Завершаем диалог
 
-                return new SendMessage(chatId, "Ссылка добавлена: " + data.url +
-                    "\nТеги: " + String.join(", ", data.tags) +
-                    "\nФильтры: " + String.join(", ", data.filters))
-                    .replyToMessageId(replyTo);
+                return new SendMessage(
+                                chatId,
+                                "Ссылка добавлена: " + data.url + "\nТеги: "
+                                        + String.join(", ", data.tags) + "\nФильтры: "
+                                        + String.join(", ", data.filters))
+                        .replyToMessageId(replyTo);
 
             default:
                 userStates.put(chatId, State.AWAITING_URL);
-                return new SendMessage(chatId, "Введите ссылку для отслеживания")
-                    .replyToMessageId(replyTo);
+                return new SendMessage(chatId, "Введите ссылку для отслеживания").replyToMessageId(replyTo);
         }
     }
 
@@ -145,5 +141,4 @@ public class TrackDialog {
         }
         return Arrays.asList(input.split("\\s*,\\s*"));
     }
-
 }

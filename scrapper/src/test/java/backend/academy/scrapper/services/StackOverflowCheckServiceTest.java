@@ -1,21 +1,19 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.stackoverflow.StackOverflowClient;
-import backend.academy.scrapper.stackoverflow.StackOverflowQuestion;
-import backend.academy.scrapper.repositories.InMemoryLinkRepository;
-import backend.academy.scrapper.models.Link;
+import static org.mockito.Mockito.*;
+
 import backend.academy.scrapper.bot.BotHttpClient;
 import backend.academy.scrapper.dto.LinkUpdate;
+import backend.academy.scrapper.models.Link;
+import backend.academy.scrapper.repositories.InMemoryLinkRepository;
+import backend.academy.scrapper.stackoverflow.StackOverflowClient;
+import backend.academy.scrapper.stackoverflow.StackOverflowQuestion;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.scheduling.annotation.Scheduled;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
 
 public class StackOverflowCheckServiceTest {
 
@@ -54,9 +52,8 @@ public class StackOverflowCheckServiceTest {
         when(linkRepository.isInitialized(testUrl)).thenReturn(true);
         when(linkRepository.getLastUpdated(testUrl)).thenReturn(lastUpdated);
 
-        when(stackOverflowClient.getQuestion("12345")).thenReturn(
-            Mono.just(new StackOverflowQuestion(12345L, "Test Question", System.currentTimeMillis()))
-        );
+        when(stackOverflowClient.getQuestion("12345"))
+                .thenReturn(Mono.just(new StackOverflowQuestion(12345L, "Test Question", System.currentTimeMillis())));
 
         when(botHttpClient.sendUpdate(any(LinkUpdate.class))).thenReturn(Mono.empty());
 
@@ -65,7 +62,6 @@ public class StackOverflowCheckServiceTest {
         verify(linkRepository, times(1)).updateLastUpdated(eq(testUrl), any());
         verify(botHttpClient, times(1)).sendUpdate(any(LinkUpdate.class));
     }
-
 
     @Test
     void testCheckLinks_withNewQuestion() {
@@ -77,7 +73,8 @@ public class StackOverflowCheckServiceTest {
         when(link.chatId()).thenReturn(chatId);
         when(linkRepository.isInitialized(testUrl)).thenReturn(false);
 
-        StackOverflowQuestion stackOverflowQuestion = new StackOverflowQuestion(67890L, "New Test Question", System.currentTimeMillis());
+        StackOverflowQuestion stackOverflowQuestion =
+                new StackOverflowQuestion(67890L, "New Test Question", System.currentTimeMillis());
         when(stackOverflowClient.getQuestion("67890")).thenReturn(Mono.just(stackOverflowQuestion));
 
         stackOverflowCheckService.checkLinks();

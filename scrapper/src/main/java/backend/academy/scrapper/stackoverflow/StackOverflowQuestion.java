@@ -1,13 +1,13 @@
 package backend.academy.scrapper.stackoverflow;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,6 +25,8 @@ public class StackOverflowQuestion {
     private Long lastActivityDate;
 
     public LocalDateTime getLastActivityDateAsDateTime() {
-        return lastActivityDate != null ? Instant.ofEpochSecond(lastActivityDate).atZone(ZoneOffset.UTC).toLocalDateTime() : null;
+        return lastActivityDate != null
+                ? Instant.ofEpochSecond(lastActivityDate).atZone(ZoneOffset.UTC).toLocalDateTime()
+                : null;
     }
 }

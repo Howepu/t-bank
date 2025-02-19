@@ -39,6 +39,6 @@ public class TrackCommand implements CommandHandler {
 
         log.warn("Команда /track введена без ссылки: chatId={}", chatId);
         return new SendMessage(chatId, "Команда /track ожидает URL.")
-            .replyToMessageId(update.message().messageId());
+                .replyToMessageId(update.message().messageId());
     }
 }

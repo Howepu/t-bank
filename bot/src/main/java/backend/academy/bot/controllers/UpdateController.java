@@ -1,6 +1,5 @@
 package backend.academy.bot.controllers;
 
-
 import backend.academy.bot.dto.LinkUpdate;
 import backend.academy.bot.services.BotService;
 import org.springframework.http.ResponseEntity;
@@ -25,4 +24,3 @@ public class UpdateController {
         return ResponseEntity.ok().build();
     }
 }
-

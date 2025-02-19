@@ -1,7 +1,6 @@
 package backend.academy.scrapper.repositories;
 
 import backend.academy.scrapper.models.Link;
-import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class InMemoryLinkRepository implements LinkRepository {
@@ -17,7 +16,6 @@ public class InMemoryLinkRepository implements LinkRepository {
     private final List<Link> links = new ArrayList<>();
     private final Map<String, LocalDateTime> linkLastUpdated = new HashMap<>();
     private final Set<String> initializedLinks = new HashSet<>();
-
 
     @Override
     public Link save(Long chatId, Link link) {
@@ -29,7 +27,9 @@ public class InMemoryLinkRepository implements LinkRepository {
 
     @Override
     public Link remove(Long chatId, String url) {
-        List<Link> linkList = findAllByChatId(chatId).stream().filter(l -> l.url().equals(url)).toList();
+        List<Link> linkList = findAllByChatId(chatId).stream()
+                .filter(l -> l.url().equals(url))
+                .toList();
 
         if (!linkList.isEmpty()) {
             Link link = linkList.getFirst();
@@ -45,7 +45,7 @@ public class InMemoryLinkRepository implements LinkRepository {
     public List<Link> findAllByChatId(Long chatId) {
         List<Link> chatLinks = new ArrayList<>();
         for (Link link : links) {
-            if (link.chatId() != null && link.chatId().equals(chatId)) {  // Используем equals для сравнения
+            if (link.chatId() != null && link.chatId().equals(chatId)) { // Используем equals для сравнения
                 chatLinks.add(link);
             }
         }
@@ -72,5 +72,4 @@ public class InMemoryLinkRepository implements LinkRepository {
     public void markInitialized(String url) {
         initializedLinks.add(url);
     }
-
 }

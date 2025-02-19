@@ -1,17 +1,15 @@
 package backend.academy.scrapper.repositories;
 
 import backend.academy.scrapper.models.Chat;
-import org.springframework.stereotype.Repository;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class InMemoryChatRepository implements ChatRepository {
 
-    private final static Set<Chat> registeredChats = new HashSet<>();
-
+    private static final Set<Chat> registeredChats = new HashSet<>();
 
     @Override
     public void save(Long id) {

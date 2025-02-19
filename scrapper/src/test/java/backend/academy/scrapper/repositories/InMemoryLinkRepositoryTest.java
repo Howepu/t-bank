@@ -1,11 +1,11 @@
 package backend.academy.scrapper.repositories;
 
-import backend.academy.scrapper.models.Link;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import backend.academy.scrapper.models.Link;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class InMemoryLinkRepositoryTest {
 

@@ -1,8 +1,9 @@
 package backend.academy.scrapper.repositories;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryChatRepositoryTest {
 
@@ -33,7 +34,6 @@ public class InMemoryChatRepositoryTest {
 
         assertFalse(chatRepository.isChatRegistered(chatId), "Chat should be removed");
     }
-
 
     @Test
     void isChatRegistered_shouldReturnFalseWhenChatNotExists() {

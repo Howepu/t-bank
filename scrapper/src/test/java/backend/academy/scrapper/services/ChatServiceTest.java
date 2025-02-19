@@ -1,16 +1,15 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.repositories.InMemoryChatRepository;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import backend.academy.scrapper.repositories.InMemoryChatRepository;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.NoSuchElementException;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ChatServiceTest {
 

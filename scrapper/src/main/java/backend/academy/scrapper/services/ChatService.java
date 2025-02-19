@@ -1,11 +1,9 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.dto.ApiErrorResponse;
 import backend.academy.scrapper.repositories.InMemoryChatRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import java.util.NoSuchElementException;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
@@ -37,5 +35,4 @@ public class ChatService {
             throw new NoSuchElementException("Chat ID не найден");
         }
     }
-
 }

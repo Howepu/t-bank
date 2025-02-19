@@ -9,13 +9,12 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -28,8 +27,8 @@ public class TelegramBotService {
     public TelegramBotService(List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
         String botToken = System.getenv("TELEGRAM_TOKEN");
         this.telegramBot = new TelegramBot(botToken);
-        this.commandHandlers = commandHandlers.stream()
-            .collect(Collectors.toMap(CommandHandler::command, handler -> handler));
+        this.commandHandlers =
+                commandHandlers.stream().collect(Collectors.toMap(CommandHandler::command, handler -> handler));
         this.trackDialog = trackDialog;
     }
 
@@ -46,7 +45,8 @@ public class TelegramBotService {
                 updates.forEach(this::processUpdate);
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             } catch (Exception e) {
-                log.error("Ошибка при обработке обновлений: " + e.getMessage());
+                log.error("Ошибка при обработке обновлений: {}", e.getMessage());
+
                 e.printStackTrace();
                 return UpdatesListener.CONFIRMED_UPDATES_ALL;
             }
@@ -65,11 +65,12 @@ public class TelegramBotService {
 
         // Обработка команд
         Optional<CommandHandler> handlerOpt = commandHandlers.values().stream()
-            .filter(handler -> messageText.startsWith(handler.command()))
-            .findFirst();
+                .filter(handler -> messageText.startsWith(handler.command()))
+                .findFirst();
 
         if (handlerOpt.isPresent()) {
-            CommandHandler handler = handlerOpt.get();
+            CommandHandler handler = handlerOpt.orElseThrow(() -> new IllegalArgumentException("Handler not found"));
+
             SendMessage response = handler.handle(update);
             telegramBot.execute(response);
         } else if (messageText.startsWith("/")) {
@@ -83,15 +84,9 @@ public class TelegramBotService {
         }
     }
 
-
     private SetMyCommands createMenuCommand() {
-        return new SetMyCommands(commandHandlers.values().stream().map(command -> new BotCommand(
-            command.command(),
-            command.description()
-        )).toArray(BotCommand[]::new));
+        return new SetMyCommands(commandHandlers.values().stream()
+                .map(command -> new BotCommand(command.command(), command.description()))
+                .toArray(BotCommand[]::new));
     }
 }
-
-
-
-

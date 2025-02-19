@@ -2,10 +2,9 @@ package backend.academy.bot.commands;
 
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -29,7 +28,11 @@ public class HelpCommand implements CommandHandler {
 
         StringBuilder stringBuilder = new StringBuilder("Список команд:\n");
         for (CommandHandler command : commands) {
-            stringBuilder.append(command.command()).append(" - ").append(command.description()).append("\n");
+            stringBuilder
+                    .append(command.command())
+                    .append(" - ")
+                    .append(command.description())
+                    .append("\n");
         }
 
         return new SendMessage(chatId, stringBuilder.toString());

@@ -1,14 +1,11 @@
 package backend.academy.scrapper.services;
 
-import backend.academy.scrapper.dto.ApiErrorResponse;
-import backend.academy.scrapper.dto.LinkResponse;
-import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.repositories.LinkRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor

@@ -27,9 +27,10 @@ public class StartCommand implements CommandHandler {
     @Override
     public SendMessage handle(Update update) {
         long chatId = update.message().chat().id();
-        scrapperHttpClient.registerChat(chatId)
-            .doOnError(err -> log.error("Ошибка регистрации чата: " + err.getMessage()))
-            .subscribe();
+        scrapperHttpClient
+                .registerChat(chatId)
+                .doOnError(err -> log.error("Ошибка регистрации чата: {}", err.getMessage()))
+                .subscribe();
 
         return new SendMessage(chatId, "Добро пожаловать! Используйте /help для списка команд.");
     }

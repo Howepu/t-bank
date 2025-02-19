@@ -2,7 +2,6 @@ package backend.academy.bot.clients;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,4 +22,3 @@ public class TelegramClient {
         telegramBot.execute(request);
     }
 }
-

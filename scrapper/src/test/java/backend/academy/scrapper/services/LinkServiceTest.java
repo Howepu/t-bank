@@ -1,20 +1,17 @@
 package backend.academy.scrapper.services;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.repositories.LinkRepository;
-import backend.academy.scrapper.services.ChatService;
-import backend.academy.scrapper.services.LinkService;
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class LinkServiceTest {
 
@@ -67,7 +64,8 @@ class LinkServiceTest {
     @Test
     void testRemoveLinkHappyPath() {
         when(chatService.isChatRegistered(chatId)).thenReturn(true);
-        Link existingLink = new Link(chatId, "http://example.com", List.of("tag1", "tag2"), List.of("filter1", "filter2"));
+        Link existingLink =
+                new Link(chatId, "http://example.com", List.of("tag1", "tag2"), List.of("filter1", "filter2"));
         when(linkRepository.remove(chatId, "http://example.com")).thenReturn(existingLink);
 
         Link removedLink = linkService.removeLink(chatId, "http://example.com");
@@ -103,7 +101,6 @@ class LinkServiceTest {
         });
         assertEquals("Чат не зарегистрирован", exception.getMessage());
     }
-
 
     @Test
     void removeLink_shouldThrowException_whenChatNotRegistered() {

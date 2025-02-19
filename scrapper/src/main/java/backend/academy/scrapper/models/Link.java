@@ -1,9 +1,8 @@
 package backend.academy.scrapper.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Getter
 @Setter
@@ -22,6 +21,4 @@ public class Link {
 
     @JsonProperty("filters")
     private List<String> filters;
-
-
 }

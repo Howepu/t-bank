@@ -1,20 +1,19 @@
 package backend.academy.bot.services;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import backend.academy.bot.commands.CommandHandler;
 import backend.academy.bot.commands.track.TrackDialog;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TelegramBotServiceTest {
@@ -44,9 +43,6 @@ class TelegramBotServiceTest {
         // Проверяем, что исключение содержит ожидаемое сообщение
         assertEquals("Неизвестная команда: /unknowncommand", exception.getMessage());
     }
-
-
-
 
     private Update mockUpdate(Long chatId, String text) {
         Chat chat = mock(Chat.class);

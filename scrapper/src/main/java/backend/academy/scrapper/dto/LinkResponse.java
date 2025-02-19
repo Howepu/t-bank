@@ -1,12 +1,11 @@
 package backend.academy.scrapper.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,5 +24,4 @@ public class LinkResponse {
 
     @JsonProperty("filters")
     private List<String> filters;
-
 }

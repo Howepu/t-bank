@@ -1,22 +1,21 @@
 package backend.academy.bot.commands;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import backend.academy.bot.clients.ScrapperHttpClient;
 import backend.academy.bot.commands.track.TrackDialog;
 import backend.academy.bot.dto.AddLinkRequest;
 import backend.academy.bot.dto.LinkResponse;
 import backend.academy.bot.dto.ListLinksResponse;
+import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.Chat;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class TrackDialogTest {
 
@@ -50,7 +49,9 @@ class TrackDialogTest {
 
         var response = trackDialog.handle(update);
         assertNotNull(response);
-        assertEquals("Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.", response.getParameters().get("text"));
+        assertEquals(
+                "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.",
+                response.getParameters().get("text"));
     }
 
     @Test
@@ -59,9 +60,8 @@ class TrackDialogTest {
         String duplicateUrl = "https://github.com/example/repo";
 
         // Моделируем ответ с уже существующей ссылкой
-        ListLinksResponse linksResponse = new ListLinksResponse(List.of(
-            new LinkResponse(1L, duplicateUrl, null, null)
-        ), 1);
+        ListLinksResponse linksResponse =
+                new ListLinksResponse(List.of(new LinkResponse(1L, duplicateUrl, null, null)), 1);
         when(scrapperHttpClient.getLinks(chatId)).thenReturn(Mono.just(linksResponse));
 
         // Пользователь пытается добавить уже существующую ссылку
@@ -75,6 +75,4 @@ class TrackDialogTest {
         // Убеждаемся, что метод addLink не вызывался
         verify(scrapperHttpClient, never()).addLink(eq(chatId), any(AddLinkRequest.class));
     }
-
 }
-

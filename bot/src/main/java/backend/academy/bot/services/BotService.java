@@ -20,11 +20,10 @@ public class BotService {
         System.out.println(update.description());
         String message = "Обновления по ссылке: " + update.url() + "\n" + update.description();
 
-        log.info("Получено обновление: " + message);
+        log.info("Получено обновление: {}", message);
 
         for (Long chatId : update.tgChatIds()) {
             telegramClient.sendMessage(chatId, message);
         }
     }
 }
-

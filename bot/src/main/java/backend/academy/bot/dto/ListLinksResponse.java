@@ -1,11 +1,9 @@
 package backend.academy.bot.dto;
 
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,5 +12,4 @@ public class ListLinksResponse {
 
     private List<LinkResponse> links;
     private int size;
-
 }

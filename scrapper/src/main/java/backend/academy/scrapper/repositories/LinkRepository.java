@@ -5,7 +5,10 @@ import java.util.List;
 
 public interface LinkRepository {
     Link save(Long chatId, Link link);
+
     Link remove(Long chatId, String url);
+
     List<Link> findAllByChatId(Long chatId);
+
     List<Link> findAll();
 }
