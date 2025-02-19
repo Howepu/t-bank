@@ -1,19 +1,19 @@
-//package backend.academy.scrapper.services;
+// package backend.academy.scrapper.services;
 //
-//import backend.academy.scrapper.bot.BotHttpClient;
-//import backend.academy.scrapper.dto.LinkUpdate;
-//import backend.academy.scrapper.github.GitHubClient;
-//import backend.academy.scrapper.github.GitHubRepository;
-//import backend.academy.scrapper.models.Link;
-//import backend.academy.scrapper.repositories.InMemoryLinkRepository;
-//import java.util.List;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.scheduling.annotation.Scheduled;
-//import org.springframework.stereotype.Service;
+// import backend.academy.scrapper.bot.BotHttpClient;
+// import backend.academy.scrapper.dto.LinkUpdate;
+// import backend.academy.scrapper.github.GitHubClient;
+// import backend.academy.scrapper.github.GitHubRepository;
+// import backend.academy.scrapper.models.Link;
+// import backend.academy.scrapper.repositories.InMemoryLinkRepository;
+// import java.util.List;
+// import lombok.extern.slf4j.Slf4j;
+// import org.springframework.scheduling.annotation.Scheduled;
+// import org.springframework.stereotype.Service;
 //
-//@Service
-//@Slf4j
-//public class LinkCheckService {
+// @Service
+// @Slf4j
+// public class LinkCheckService {
 //
 //    private final GitHubClient gitHubClient;
 //    private final InMemoryLinkRepository linkRepository;
@@ -67,7 +67,8 @@
 //
 //    private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
 //        String message = String.format(
-//                UPDATE_MESSAGE_TEMPLATE, gitHubRepository.name(), gitHubRepository.getPushedAtAsDateTime(), link.url());
+//                UPDATE_MESSAGE_TEMPLATE, gitHubRepository.name(), gitHubRepository.getPushedAtAsDateTime(),
+// link.url());
 //
 //        LinkUpdate update = new LinkUpdate(link.chatId(), link.url(), message, List.of(link.chatId()));
 //
@@ -79,4 +80,4 @@
 //        // Проверяем, что URL соответствует формату репозитория на GitHub
 //        return url.matches("https://github\\.com/[^/]+/[^/]+");
 //    }
-//}
+// }
