@@ -45,8 +45,9 @@ public class LinkCheckService {
 
         gitHubClient
             .getRepository(owner, repo)
-            .doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link))
+            .doOnNext((GitHubRepository gitHubRepository) -> processGitHubRepository(gitHubRepository, link))
             .subscribe();
+
     }
 
 
