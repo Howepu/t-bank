@@ -46,7 +46,7 @@ public class LinkCheckService {
         String repo = parts[4];
 
         gitHubClient.getRepository(owner, repo)
-            .subscribe(gitHubRepository -> {
+            .doOnNext(gitHubRepository -> {
                 if (!linkRepository.isInitialized(link.url())) {
                     if (linkRepository.getLastUpdated(link.url()) == null) {
                         linkRepository.updateLastUpdated(link.url(), gitHubRepository.getPushedAtAsDateTime());
@@ -61,8 +61,10 @@ public class LinkCheckService {
                     linkRepository.updateLastUpdated(link.url(), gitHubRepository.getPushedAtAsDateTime());
                     sendUpdate(link, gitHubRepository);
                 }
-            });
+            })
+            .subscribe();
     }
+
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
         String message = String.format(
