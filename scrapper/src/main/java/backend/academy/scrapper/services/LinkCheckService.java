@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -43,11 +44,9 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        gitHubClient
-            .getRepository(owner, repo)
-            .doOnNext((GitHubRepository gitHubRepository) -> processGitHubRepository(gitHubRepository, link))
-            .subscribe();
-
+        log.info("gitHubClient class: {}", gitHubClient.getClass().getName());
+        Mono<GitHubRepository> repoMono = gitHubClient.getRepository(owner, repo);
+        repoMono.doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link)).subscribe();
     }
 
 
