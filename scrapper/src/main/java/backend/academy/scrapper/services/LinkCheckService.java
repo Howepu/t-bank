@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -18,13 +19,13 @@ public class LinkCheckService {
 
     private static final String GITHUB_REPO_URL_PATTERN = "https://github\\.com/[^/]+/[^/]+";
     private static final String UPDATE_MESSAGE_TEMPLATE =
-            "🔔 Обновления в репозитории **%s**%n" + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
+        "🔔 Обновления в репозитории **%s**%n" + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
     private final GitHubClient gitHubClient;
     private final InMemoryLinkRepository linkRepository;
     private final BotHttpClient botHttpClient;
 
     public LinkCheckService(
-            GitHubClient gitHubClient, InMemoryLinkRepository linkRepository, BotHttpClient botHttpClient) {
+        GitHubClient gitHubClient, InMemoryLinkRepository linkRepository, BotHttpClient botHttpClient) {
         this.gitHubClient = gitHubClient;
         this.linkRepository = linkRepository;
         this.botHttpClient = botHttpClient;
@@ -46,10 +47,13 @@ public class LinkCheckService {
         String repo = parts[4];
 
         gitHubClient.getRepository(owner, repo)
-            .map(gitHubRepo -> {
-                log.info("Проверка репозитория: {}", link.url());
+            .flatMap(gitHubRepo -> {
+                if (gitHubRepo == null) {
+                    log.error("Не удалось получить репозиторий: {} / {}", owner, repo);
+                    return Mono.empty(); // Возвращаем пустой Mono, если репозиторий не найден
+                }
 
-                // Используем метод getPushedAtAsDateTime() из GitHubRepository
+                log.info("Проверка репозитория: {}", link.url());
                 LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
 
                 log.info("Последнее обновление в репозитории: {}", pushedAt);
@@ -60,7 +64,7 @@ public class LinkCheckService {
                         linkRepository.updateLastUpdated(link.url(), pushedAt);
                     }
                     linkRepository.markInitialized(link.url());
-                    return null; // Возвращаем null, чтобы завершить выполнение
+                    return Mono.empty(); // Возвращаем пустой Mono, чтобы завершить выполнение
                 }
 
                 if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
@@ -72,15 +76,15 @@ public class LinkCheckService {
                         sendUpdate(link, gitHubRepo);
                     }
                 }
-                return null;
+                return Mono.empty(); // Возвращаем пустой Mono, чтобы завершить выполнение
             })
+            .doOnError(e -> log.error("Ошибка при проверке репозитория: {}", e.getMessage()))  // Обработка ошибок
             .subscribe();
     }
 
-
     private void sendUpdate(Link link, GitHubRepository gitHubRepo) {
         String message = String.format(
-                UPDATE_MESSAGE_TEMPLATE, gitHubRepo.name(), gitHubRepo.getPushedAtAsDateTime(), link.url());
+            UPDATE_MESSAGE_TEMPLATE, gitHubRepo.name(), gitHubRepo.getPushedAtAsDateTime(), link.url());
 
         LinkUpdate update = new LinkUpdate(link.chatId(), link.url(), message, List.of(link.chatId()));
 
