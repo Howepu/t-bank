@@ -13,17 +13,17 @@ public class GitHubClient {
 
     public GitHubClient(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder
-            .baseUrl("https://api.github.com")
-            .defaultHeaders(h -> h.setBearerAuth(System.getenv("GITHUB_TOKEN")))
-            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .build();
+                .baseUrl("https://api.github.com")
+                .defaultHeaders(h -> h.setBearerAuth(System.getenv("GITHUB_TOKEN")))
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
     }
 
     public Mono<GitHubRepository> getRepository(String owner, String repo) {
         return webClient
-            .get()
-            .uri("/repos/{owner}/{repo}", owner, repo)
-            .retrieve()
-            .bodyToMono(GitHubRepository.class);
+                .get()
+                .uri("/repos/{owner}/{repo}", owner, repo)
+                .retrieve()
+                .bodyToMono(GitHubRepository.class);
     }
 }

@@ -46,10 +46,9 @@ public class LinkCheckService {
 
         log.info("gitHubClient class: {}", gitHubClient.getClass().getName());
         Mono<GitHubRepository> repoMono = gitHubClient.getRepository(owner, repo);
-        repoMono.doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link)).subscribe();
+        repoMono.doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link))
+                .subscribe();
     }
-
-
 
     private void processGitHubRepository(GitHubRepository gitHubRepository, Link link) {
         if (!linkRepository.isInitialized(link.url())) {
@@ -61,7 +60,7 @@ public class LinkCheckService {
         }
 
         if (gitHubRepository.getPushedAtAsDateTime() != null
-            && !gitHubRepository.getPushedAtAsDateTime().equals(linkRepository.getLastUpdated(link.url()))) {
+                && !gitHubRepository.getPushedAtAsDateTime().equals(linkRepository.getLastUpdated(link.url()))) {
             linkRepository.updateLastUpdated(link.url(), gitHubRepository.getPushedAtAsDateTime());
             sendUpdate(link, gitHubRepository);
         }
