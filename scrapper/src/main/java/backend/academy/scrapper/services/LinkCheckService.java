@@ -20,12 +20,10 @@ public class LinkCheckService {
     private final BotHttpClient botHttpClient;
 
     private static final String UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в репозитории на GitHub: **%s**%n"
-        + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
+            + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
 
     public LinkCheckService(
-        GitHubClient gitHubClient,
-        InMemoryLinkRepository linkRepository,
-        BotHttpClient botHttpClient) {
+            GitHubClient gitHubClient, InMemoryLinkRepository linkRepository, BotHttpClient botHttpClient) {
         this.gitHubClient = gitHubClient;
         this.linkRepository = linkRepository;
         this.botHttpClient = botHttpClient;
@@ -45,9 +43,10 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        gitHubClient.getRepository(owner, repo)
-            .doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link))
-            .subscribe();
+        gitHubClient
+                .getRepository(owner, repo)
+                .doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link))
+                .subscribe();
     }
 
     private void processGitHubRepository(GitHubRepository gitHubRepository, Link link) {
@@ -60,7 +59,7 @@ public class LinkCheckService {
         }
 
         if (gitHubRepository.getPushedAtAsDateTime() != null
-            && !gitHubRepository.getPushedAtAsDateTime().equals(linkRepository.getLastUpdated(link.url()))) {
+                && !gitHubRepository.getPushedAtAsDateTime().equals(linkRepository.getLastUpdated(link.url()))) {
             linkRepository.updateLastUpdated(link.url(), gitHubRepository.getPushedAtAsDateTime());
             sendUpdate(link, gitHubRepository);
         }
@@ -68,10 +67,7 @@ public class LinkCheckService {
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
         String message = String.format(
-            UPDATE_MESSAGE_TEMPLATE,
-            gitHubRepository.name(),
-            gitHubRepository.getPushedAtAsDateTime(),
-            link.url());
+                UPDATE_MESSAGE_TEMPLATE, gitHubRepository.name(), gitHubRepository.getPushedAtAsDateTime(), link.url());
 
         LinkUpdate update = new LinkUpdate(link.chatId(), link.url(), message, List.of(link.chatId()));
 
