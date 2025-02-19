@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 @Getter
 public class LinkResponse {
 
