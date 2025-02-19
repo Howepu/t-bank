@@ -7,8 +7,8 @@ import backend.academy.scrapper.github.GitHubRepository;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.repositories.InMemoryLinkRepository;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -46,35 +46,38 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        gitHubClient.getRepository(owner, repo).subscribe(gitHubRepo -> {
+        // Используем анонимный класс вместо лямбды
+        gitHubClient.getRepository(owner, repo).subscribe(new Consumer<GitHubRepository>() {
+            @Override
+            public void accept(GitHubRepository gitHubRepo) {
+                log.info("Проверка репозитория: {}", link.url());
 
-            log.info("Проверка репозитория: {}", link.url());
+                // Теперь используем метод getPushedAtAsDateTime() из GitHubRepository
+                LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
 
-            LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
+                log.info("Последнее обновление в репозитории: {}", pushedAt);
+                log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
 
-            log.info("Последнее обновление в репозитории: {}", pushedAt);
-            log.info("Последнее сохраненное обновление: {}", linkRepository.getLastUpdated(link.url()));
-
-            if (!linkRepository.isInitialized(link.url())) {
-                if (linkRepository.getLastUpdated(link.url()) == null) {
-                    linkRepository.updateLastUpdated(link.url(), pushedAt);
+                if (!linkRepository.isInitialized(link.url())) {
+                    if (linkRepository.getLastUpdated(link.url()) == null) {
+                        linkRepository.updateLastUpdated(link.url(), pushedAt);
+                    }
+                    linkRepository.markInitialized(link.url());
+                    return;
                 }
-                linkRepository.markInitialized(link.url());
-                return;
-            }
 
-            if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
-                LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
+                if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
+                    LocalDateTime lastUpdated = linkRepository.getLastUpdated(link.url());
 
-                if (pushedAt.isAfter(lastUpdated)) {
-                    log.info("Обнаружено новое обновление для репозитория: {}", link.url());
-                    linkRepository.updateLastUpdated(link.url(), pushedAt);
-                    sendUpdate(link, gitHubRepo);
+                    if (pushedAt.isAfter(lastUpdated)) {
+                        log.info("Обнаружено новое обновление для репозитория: {}", link.url());
+                        linkRepository.updateLastUpdated(link.url(), pushedAt);
+                        sendUpdate(link, gitHubRepo);
+                    }
                 }
             }
         });
     }
-
 
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepo) {
