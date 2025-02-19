@@ -47,9 +47,9 @@ public class LinkCheckService {
         String repo = parts[4];
 
         gitHubClient.getRepository(owner, repo).subscribe(gitHubRepo -> {
+
             log.info("Проверка репозитория: {}", link.url());
 
-            // Используем метод getPushedAtAsDateTime() в GitHubRepository
             LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
 
             log.info("Последнее обновление в репозитории: {}", pushedAt);
@@ -74,6 +74,7 @@ public class LinkCheckService {
             }
         });
     }
+
 
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepo) {
