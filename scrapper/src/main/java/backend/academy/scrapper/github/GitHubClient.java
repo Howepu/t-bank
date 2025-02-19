@@ -2,9 +2,11 @@ package backend.academy.scrapper.github;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+@Component
 public class GitHubClient {
 
     private final WebClient webClient;
