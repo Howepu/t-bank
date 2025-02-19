@@ -8,7 +8,6 @@ import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.repositories.InMemoryLinkRepository;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -46,13 +45,11 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        // Используем анонимный класс вместо лямбды
-        gitHubClient.getRepository(owner, repo).subscribe(new Consumer<GitHubRepository>() {
-            @Override
-            public void accept(GitHubRepository gitHubRepo) {
+        gitHubClient.getRepository(owner, repo)
+            .map(gitHubRepo -> {
                 log.info("Проверка репозитория: {}", link.url());
 
-                // Теперь используем метод getPushedAtAsDateTime() из GitHubRepository
+                // Используем метод getPushedAtAsDateTime() из GitHubRepository
                 LocalDateTime pushedAt = gitHubRepo.getPushedAtAsDateTime();
 
                 log.info("Последнее обновление в репозитории: {}", pushedAt);
@@ -63,7 +60,7 @@ public class LinkCheckService {
                         linkRepository.updateLastUpdated(link.url(), pushedAt);
                     }
                     linkRepository.markInitialized(link.url());
-                    return;
+                    return null; // Возвращаем null, чтобы завершить выполнение
                 }
 
                 if (pushedAt != null && linkRepository.getLastUpdated(link.url()) != null) {
@@ -75,8 +72,9 @@ public class LinkCheckService {
                         sendUpdate(link, gitHubRepo);
                     }
                 }
-            }
-        });
+                return null;
+            })
+            .subscribe();
     }
 
 
