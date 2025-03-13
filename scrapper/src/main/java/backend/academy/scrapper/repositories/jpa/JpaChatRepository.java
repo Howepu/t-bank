@@ -16,6 +16,8 @@ public interface JpaChatRepository extends JpaRepository<Chat, Long> {
 
     boolean existsByChatId(Long chatId);
 
+    Chat getChatByChatId(Long chatId);
+
     @Modifying
     @Query("DELETE FROM Chat c WHERE c.chatId = :chatId")
     void deleteByChatId(@Param("chatId") Long chatId);
