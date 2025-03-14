@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repositories.jpa;
 
 import backend.academy.scrapper.models.Chat;
+import backend.academy.scrapper.models.Link;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -21,4 +22,5 @@ public interface JpaChatRepository extends JpaRepository<Chat, Long> {
     @Modifying
     @Query("DELETE FROM Chat c WHERE c.chatId = :chatId")
     void deleteByChatId(@Param("chatId") Long chatId);
+
 }

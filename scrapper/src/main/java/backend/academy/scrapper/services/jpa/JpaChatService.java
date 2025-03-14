@@ -2,6 +2,7 @@ package backend.academy.scrapper.services.jpa;
 
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.repositories.jpa.JpaChatRepository;
+import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ public class JpaChatService {
 
 
     private final JpaChatRepository chatRepository;
+    private final JpaLinkRepository linkRepository;
 
     public void registerChat(Long chatId) {
         if (chatId == null) {
@@ -37,6 +39,10 @@ public class JpaChatService {
         }
 
         chatRepository.deleteByChatId(chatId);
+        Chat chat = chatRepository.findById(chatId).get();
+        linkRepository.findAndDeleteByChat(chat);
+
+
 
     }
 
