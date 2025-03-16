@@ -48,6 +48,14 @@ public class Link {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @JsonProperty("knownIssueIds")
+    @Column(name = "known_issue_ids", columnDefinition = "BIGINT[]")
+    private List<Long> knownIssueIds = new ArrayList<>();
+
+    @JsonProperty("knownPrIds")
+    @Column(name = "known_pr_ids", columnDefinition = "BIGINT[]")
+    private List<Long> knownPrIds = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "chat_id", referencedColumnName = "chat_id", nullable = false)
     private Chat chat;
