@@ -7,6 +7,8 @@ CREATE TABLE link (
                       url        TEXT NOT NULL,
                       filters    TEXT[] DEFAULT '{}',
                       created_at TIMESTAMP DEFAULT NULL,
+                      known_issue_ids BIGINT[] DEFAULT '{}',
+                      known_pr_ids BIGINT[] DEFAULT '{}',
                       chat_id    BIGINT,
                       CONSTRAINT fk_link_chat FOREIGN KEY (chat_id) REFERENCES chat (chat_id) ON DELETE CASCADE
 );
