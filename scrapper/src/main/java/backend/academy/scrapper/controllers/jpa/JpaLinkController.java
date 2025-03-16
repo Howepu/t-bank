@@ -58,7 +58,7 @@ public class JpaLinkController {
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> removeLink(
-        @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest removeLinkRequest) {
+            @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest removeLinkRequest) {
         // Санитизируем URL и chatId перед логированием
         String sanitizedUrl = removeLinkRequest.url().replaceAll("[\r\n]", "");
         String sanitizedChatId = String.valueOf(chatId).replaceAll("[\r\n]", "");
