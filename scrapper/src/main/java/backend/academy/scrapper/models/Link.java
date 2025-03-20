@@ -68,5 +68,11 @@ public class Link {
         inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id")
     )
     private Set<Tag> assignedTags = new HashSet<>();
+
+    public Link(Long id, String url, String tags, String[] filters) {
+    }
+
+    public Link(long id, String url, List<String> filters, LocalDateTime createdAt, Chat chatId) {
+    }
 }
 

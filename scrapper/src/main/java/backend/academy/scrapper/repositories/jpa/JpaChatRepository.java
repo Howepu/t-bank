@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
 
 @Transactional
 public interface JpaChatRepository extends JpaRepository<Chat, Long> {
@@ -18,6 +19,9 @@ public interface JpaChatRepository extends JpaRepository<Chat, Long> {
     boolean existsByChatId(Long chatId);
 
     Chat getChatByChatId(Long chatId);
+
+    @Query("SELECT c FROM Chat c")
+    Set<Chat> getAllChats();
 
     @Modifying
     @Query("DELETE FROM Chat c WHERE c.chatId = :chatId")

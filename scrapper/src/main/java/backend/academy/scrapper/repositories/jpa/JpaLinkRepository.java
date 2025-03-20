@@ -7,15 +7,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Transactional
 public interface JpaLinkRepository extends JpaRepository<Link, Long> {
 
-    List<Link> findAllByChat_ChatId(Long chatId);
+    List<Link> findAllByChatChatId(Long chatId);
 
     @Modifying
     @Query("UPDATE Link l SET l.createdAt = :createdAt WHERE l.id = :id")

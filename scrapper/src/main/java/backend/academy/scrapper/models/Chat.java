@@ -32,5 +32,9 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Link> links = new ArrayList<>();
 
+    public Chat(Long chatId) {
+        this.chatId = chatId;
+    }
+
 }
 
