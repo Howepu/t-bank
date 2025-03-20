@@ -8,5 +8,5 @@ import lombok.Getter;
 public class StackOverflowResponse {
 
     @JsonProperty("items")
-    private List<StackOverflowQuestion> items;
+    private List<StackOverflowQuestionAnswer> items;
 }

@@ -19,12 +19,28 @@ public class StackOverflowClient {
     }
 
     // Получаем данные о вопросе по ID
-    public Mono<StackOverflowQuestion> getQuestion(String questionId) {
+    public Mono<StackOverflowQuestionAnswer> getQuestion(String questionId) {
         return webClient
                 .get()
                 .uri("/questions/{id}?site=stackoverflow", questionId)
                 .retrieve()
                 .bodyToMono(StackOverflowResponse.class)
                 .map(response -> response.items().get(0));
+    }
+
+    public Mono<StackOverflowQuestionAnswer> getLatestAnswer(String questionId) {
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/questions/{id}/answers")
+                .queryParam("site", "stackoverflow")
+                .queryParam("order", "desc")
+                .queryParam("sort", "creation")
+                .queryParam("filter", "!6Wfm(gIbInW9a") // Фильтр с body
+                .queryParam("pagesize", 1)
+                .build(questionId))
+            .retrieve()
+            .bodyToMono(StackOverflowResponse.class)
+            .map(response -> response.items().isEmpty() ? null : response.items().get(0));
     }
 }

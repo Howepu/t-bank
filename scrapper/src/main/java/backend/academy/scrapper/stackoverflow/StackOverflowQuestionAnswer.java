@@ -13,7 +13,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Getter
 @ToString
-public class StackOverflowQuestion {
+public class StackOverflowQuestionAnswer {
 
     @JsonProperty("question_id")
     private Long questionId;
@@ -21,12 +21,24 @@ public class StackOverflowQuestion {
     @JsonProperty("title")
     private String title;
 
+    @JsonProperty("owner")
+    private StackOverflowOwner owner;
+
     @JsonProperty("last_activity_date")
     private Long lastActivityDate;
+
+    @JsonProperty("creation_date")
+    private Long creationDate;
 
     public LocalDateTime getLastActivityDateAsDateTime() {
         return lastActivityDate != null
                 ? Instant.ofEpochSecond(lastActivityDate).atZone(ZoneOffset.UTC).toLocalDateTime()
                 : null;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate != null
+            ? Instant.ofEpochSecond(creationDate).atZone(ZoneOffset.UTC).toLocalDateTime()
+            : null;
     }
 }
