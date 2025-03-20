@@ -1,4 +1,5 @@
 app:
+  database-access-type: jpa
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:
     key: ${SO_TOKEN_KEY}
@@ -25,6 +26,8 @@ spring:
       idle-timeout: 600000
       connection-timeout: 30000
       max-lifetime: 1800000
+
+
 
 
 server:

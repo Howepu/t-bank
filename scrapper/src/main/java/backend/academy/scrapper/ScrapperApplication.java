@@ -1,5 +1,7 @@
 package backend.academy.scrapper;
 
+import backend.academy.scrapper.access.JdbcAccessConfiguration;
+import backend.academy.scrapper.access.JpaAccessConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
