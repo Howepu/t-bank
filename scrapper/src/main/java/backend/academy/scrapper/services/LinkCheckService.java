@@ -5,22 +5,25 @@ import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.github.GitHubClient;
 import backend.academy.scrapper.github.GitHubIssuePullRequest;
 import backend.academy.scrapper.github.GitHubRepository;
+import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
-import java.util.ArrayList;
-import java.util.List;
-import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
 public class LinkCheckService {
 
     private final GitHubClient gitHubClient;
-    private final JpaLinkRepository linkRepository;
+    private final LinkService linkService;
     private final BotHttpClient botHttpClient;
+    private final ChatService chatService;
 
     private static final String UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в репозитории на GitHub: **%s**%n"
         + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
@@ -29,19 +32,30 @@ public class LinkCheckService {
         + "👤 Автор: %s%n" + "📅 Время создания: %s%n" + "✉️ %s%n";
 
     public LinkCheckService(
-        GitHubClient gitHubClient, JpaLinkRepository linkRepository, BotHttpClient botHttpClient) {
+        GitHubClient gitHubClient,
+        LinkService linkService,
+        BotHttpClient botHttpClient,
+        ChatService chatService) {
         this.gitHubClient = gitHubClient;
-        this.linkRepository = linkRepository;
+        this.linkService = linkService;
         this.botHttpClient = botHttpClient;
+        this.chatService = chatService;
     }
 
     @Scheduled(fixedRate = 5000)
     public void checkLinks() {
-        for (Link link : linkRepository.findAll()) {
-            if (isGitHubRepo(link.url())) {
-                checkGitHubRepo(link);
+        log.info("Starting link check...");
+
+        Set<Chat> chatIds = chatService.getAllRegisteredChatIds();
+        for (Chat chat : chatIds) {
+            List<Link> links = linkService.getAllLinks(chat.chatId());
+            for (Link link : links) {
+                if (isGitHubRepo(link.url())) {
+                    checkGitHubRepo(link);
+                }
             }
         }
+        log.info("Finished link check.");
     }
 
     private void checkGitHubRepo(Link link) {
@@ -49,112 +63,112 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        log.info("gitHubClient class: {}", gitHubClient.getClass().getName());
+        log.info("Checking GitHub repo: {}/{}", owner, repo);
 
-        Mono<GitHubRepository> repoMono = gitHubClient.getRepository(owner, repo);
-
-        Mono<List<GitHubIssuePullRequest>> issueMono = (Mono<List<GitHubIssuePullRequest>>) gitHubClient.getIssues(owner, repo); // Получаем список Issues
-        Mono<List<GitHubIssuePullRequest>> pullRequestMono = gitHubClient.getPullRequests(owner, repo); // Получаем список PR
-
-        repoMono.doOnNext(gitHubRepository -> processGitHubRepository(gitHubRepository, link)).subscribe();
-        issueMono.doOnNext(gitHubIssuePullRequests -> processGitHubIssues(link, gitHubIssuePullRequests)).subscribe();
-        pullRequestMono.doOnNext(gitHubIssuePullRequests -> processGitHubPullRequests(link, gitHubIssuePullRequests)).subscribe();
+        gitHubClient.getRepository(owner, repo)
+            .doOnNext(repoData -> processGitHubRepository(repoData, link))
+            .then(gitHubClient.getIssues(owner, repo)
+                .doOnNext(issues -> processGitHubIssues(link, issues)))
+            .then(gitHubClient.getPullRequests(owner, repo)
+                .doOnNext(prs -> processGitHubPullRequests(link, prs)))
+            .subscribe(
+                result -> log.info("Processed GitHub repo: {}", link.url()),
+                error -> log.error("Error checking repo {}: {}", link.url(), error.getMessage())
+            );
     }
 
     private void processGitHubRepository(GitHubRepository gitHubRepository, Link link) {
-
-        // Если ссылка еще не инициализирована (например, она только что добавлена в базу данных)
         if (link.createdAt() == null) {
-            // Обновляем дату созданию ссылки в базе данных
-            linkRepository.updateCreatedAtById(link.id(), gitHubRepository.getPushedAtAsDateTime());
-            return; // Возвращаем управление, чтобы не продолжать выполнение функции
+            linkService.updateLastUpdated(link.id(), gitHubRepository.getPushedAtAsDateTime());
+            return;
         }
 
-        // Если время пуша изменилось, обновляем и отправляем уведомление
         if (gitHubRepository.getPushedAtAsDateTime() != null
             && !gitHubRepository.getPushedAtAsDateTime().equals(link.createdAt())) {
-            linkRepository.updateCreatedAtById(link.id(), gitHubRepository.getPushedAtAsDateTime());
+            linkService.updateLastUpdated(link.id(), gitHubRepository.getPushedAtAsDateTime());
             sendUpdate(link, gitHubRepository);
         }
     }
 
     private void processGitHubIssues(Link link, List<GitHubIssuePullRequest> issues) {
         boolean updated = false;
+        List<Long> knownIssueIds = link.knownIssueIds() != null ? link.knownIssueIds() : new ArrayList<>();
+        link.knownIssueIds(knownIssueIds);
 
-        // Проверка на null и инициализация, если нужно
-        List<Long> knownIssueIds = link.knownIssueIds();
-        if (knownIssueIds == null) {
-            knownIssueIds = new ArrayList<>(); // Инициализация пустым списком, если он был null
-            link.knownIssueIds(knownIssueIds); // Сохранение измененного списка в объект
-        }
-
-        // Проверка новых Issue
         for (GitHubIssuePullRequest issue : issues) {
-            // Если Issue еще не добавлено в известные, добавляем и отправляем уведомление
             if (!knownIssueIds.contains(issue.id())) {
-                knownIssueIds.add(issue.id()); // Добавляем Issue в список известных
-                sendIssueOrPRUpdate(link, issue); // Отправка уведомления о новом Issue
+                knownIssueIds.add(issue.id());
+                sendIssueOrPRUpdate(link, issue, "Issue");
                 updated = true;
             }
         }
 
-        // Обновление записи в БД, если были изменения
         if (updated) {
-            linkRepository.save(link);
+            linkService.addLink(link.chat().chatId(), link);
         }
     }
-
 
     private void processGitHubPullRequests(Link link, List<GitHubIssuePullRequest> prs) {
         boolean updated = false;
+        List<Long> knownPrIds = link.knownPrIds() != null ? link.knownPrIds() : new ArrayList<>();
+        link.knownPrIds(knownPrIds);
 
-        // Проверка на null и инициализация, если нужно
-        List<Long> knownPrIds = link.knownPrIds();
-        if (knownPrIds == null) {
-            knownPrIds = new ArrayList<>(); // Инициализация пустым списком, если он был null
-            link.knownPrIds(knownPrIds); // Сохранение измененного списка в объект
-        }
-
-        // Проверка новых PR
         for (GitHubIssuePullRequest pr : prs) {
-            // Если PR еще не добавлен в известные, добавляем и отправляем уведомление
             if (!knownPrIds.contains(pr.id())) {
-                knownPrIds.add(pr.id()); // Добавляем PR в список известных
-                sendIssueOrPRUpdate(link, pr); // Отправка уведомления о новом PR
+                knownPrIds.add(pr.id());
+                sendIssueOrPRUpdate(link, pr, "Pull Request");
                 updated = true;
             }
         }
 
-        // Обновление записи в БД, если были изменения
         if (updated) {
-            linkRepository.save(link);
+            linkService.addLink(link.chat().chatId(), link);
         }
     }
 
-
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
+        if (link.chat() == null) {
+            log.warn("Chat is null for link: {}", link.url());
+            return;
+        }
+
         String message = String.format(
-            UPDATE_MESSAGE_TEMPLATE, gitHubRepository.name(), gitHubRepository.getPushedAtAsDateTime(), link.url());
+            UPDATE_MESSAGE_TEMPLATE,
+            gitHubRepository.name(),
+            gitHubRepository.getPushedAtAsDateTime(),
+            link.url()
+        );
 
         LinkUpdate update = new LinkUpdate(link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-
-        log.info("Отправка уведомления: {}", message);
+        log.info("Sending update: {}", message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
-    private void sendIssueOrPRUpdate(Link link, GitHubIssuePullRequest gitHubIssuePullRequest) {
+    private void sendIssueOrPRUpdate(Link link, GitHubIssuePullRequest gitHubIssuePullRequest, String type) {
+        if (link.chat() == null) {
+            log.warn("Chat is null for link: {}", link.url());
+            return;
+        }
+
+        String preview = gitHubIssuePullRequest.body() != null && gitHubIssuePullRequest.body().length() > 200
+            ? gitHubIssuePullRequest.body().substring(0, 200)
+            : gitHubIssuePullRequest.body();
+
         String message = String.format(
-            ISSUE_PR_UPDATE_TEMPLATE, gitHubIssuePullRequest.title(), link.url(),
-            gitHubIssuePullRequest.gitHubUser(), gitHubIssuePullRequest.createdAt(), gitHubIssuePullRequest.body());
+            ISSUE_PR_UPDATE_TEMPLATE,
+            type,
+            link.url(),
+            gitHubIssuePullRequest.gitHubUser(),
+            gitHubIssuePullRequest.createdAt(),
+            preview
+        );
 
         LinkUpdate update = new LinkUpdate(link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-
-        log.info("Отправка уведомления: {}", message);
+        log.info("Sending {} update: {}", type, message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
     private boolean isGitHubRepo(String url) {
-        // Проверяем, что URL соответствует формату репозитория на GitHub
-        return url.matches("https://github\\.com/[^/]+/[^/]+");
+        return url != null && url.matches("https://github\\.com/[^/]+/[^/]+");
     }
 }
