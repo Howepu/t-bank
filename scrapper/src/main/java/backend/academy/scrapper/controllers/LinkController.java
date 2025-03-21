@@ -1,8 +1,10 @@
 package backend.academy.scrapper.controllers;
 
+import backend.academy.scrapper.dto.AttachTagRequest;
 import backend.academy.scrapper.dto.LinkResponse;
 import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.dto.RemoveLinkRequest;
+import backend.academy.scrapper.dto.TagRequest;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.services.LinkService;
 import lombok.AllArgsConstructor;
@@ -77,4 +79,54 @@ public class LinkController {
         return ResponseEntity.ok(new LinkResponse(chatId, link.url(), link.assignedTags(), link.filters()));
     }
 
+    @PostMapping("/tag")
+    public ResponseEntity<ListLinksResponse> getLinksByTag(
+        @RequestHeader("Tg-Chat-Id") Long chatId,
+        @RequestBody TagRequest tagRequest
+    ) {
+        if (chatId == null) {
+            throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
+        }
+
+        String tagName = tagRequest.name(); // Достаём имя тега из DTO
+        log.info("Запрос всех ссылок по тегу '{}' для чата {}", tagName, chatId);
+
+        List<LinkResponse> links = linkService.findLinksByTag(tagName, chatId).stream()
+            .map(link -> new LinkResponse(
+                link.chat().chatId(),
+                link.url(),
+                link.assignedTags(),
+                link.filters()
+            ))
+            .toList();
+
+        log.info("Найдено {} ссылок по тегу '{}' для чата {}", links.size(), tagName, chatId);
+        return ResponseEntity.ok(new ListLinksResponse(links, links.size()));
+    }
+
+    @PostMapping("/attach-tag")
+    public ResponseEntity<String> attachTagToLink(
+        @RequestHeader("Tg-Chat-Id") Long chatId,
+        @RequestBody AttachTagRequest request
+    ) {
+        if (chatId == null) {
+            throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
+        }
+
+        linkService.attachTagToLink(request.url(), request.tagName());
+        return ResponseEntity.ok("Тег '" + request.tagName() + "' привязан к ссылке '" + request.url() + "'");
+    }
+
+    @DeleteMapping("/attach-tag")
+    public ResponseEntity<String> detachTagFromLink(
+        @RequestHeader("Tg-Chat-Id") Long chatId,
+        @RequestBody AttachTagRequest request
+    ) {
+        if (chatId == null) {
+            throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
+        }
+
+        linkService.detachTagFromLink(request.url(), request.tagName());
+        return ResponseEntity.ok("Тег '" + request.tagName() + "' отвязан от ссылки '" + request.url() + "'");
+    }
 }
