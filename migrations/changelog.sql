@@ -15,7 +15,8 @@ CREATE TABLE link (
 
 CREATE TABLE tag (
                      id BIGSERIAL PRIMARY KEY,
-                     name TEXT UNIQUE NOT NULL
+                     name TEXT UNIQUE NOT NULL,
+                     chat_id    BIGINT
 );
 
 CREATE TABLE link_tag (

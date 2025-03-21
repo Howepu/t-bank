@@ -42,8 +42,10 @@ public class JpaLinkService implements LinkService {
         if (link.assignedTags() != null) {
             for (Tag tag : link.assignedTags()) {
                 // Проверка, существует ли тег
-                Tag existingTag = tagRepository.findByName(tag.name())
-                    .orElseGet(() -> tagRepository.save(tag)); // Сохраняем новый, если не найден
+                Tag existingTag = tagRepository.findByName(tag.name());
+                if (existingTag == null) {
+                    tagRepository.save(tag);
+                }
                 persistedTags.add(existingTag);
             }
         }
@@ -78,6 +80,8 @@ public class JpaLinkService implements LinkService {
     public List<Link> getAllLinks(Long chatId) {
 
         return linkRepository.findAllByChatChatId(chatId);
+
+
     }
 
     @Override

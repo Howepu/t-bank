@@ -51,6 +51,7 @@ public class LinkCheckService {
             List<Link> links = linkService.getAllLinks(chat.chatId());
             for (Link link : links) {
                 if (isGitHubRepo(link.url())) {
+                    log.info(link.url());
                     checkGitHubRepo(link);
                 }
             }

@@ -36,7 +36,6 @@ public class StackOverflowClient {
                 .queryParam("site", "stackoverflow")
                 .queryParam("order", "desc")
                 .queryParam("sort", "creation")
-                .queryParam("filter", "!6Wfm(gIbInW9a") // Фильтр с body
                 .queryParam("pagesize", 1)
                 .build(questionId))
             .retrieve()
