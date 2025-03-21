@@ -1,9 +1,12 @@
 package backend.academy.bot.clients;
 
 import backend.academy.bot.dto.AddLinkRequest;
+import backend.academy.bot.dto.AttachTagRequest;
 import backend.academy.bot.dto.LinkResponse;
 import backend.academy.bot.dto.ListLinksResponse;
+import backend.academy.bot.dto.ListTagsResponse;
 import backend.academy.bot.dto.RemoveLinkRequest;
+import backend.academy.bot.dto.TagRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -49,11 +52,62 @@ public class ScrapperHttpClient {
 
     public Mono<LinkResponse> removeLink(long chatId, RemoveLinkRequest request) {
         return webClient
-                .method(HttpMethod.DELETE)
-                .uri("/links")
-                .header("Tg-Chat-Id", String.valueOf(chatId))
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(LinkResponse.class);
+            .method(HttpMethod.DELETE)
+            .uri("/links")
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(LinkResponse.class);
     }
+
+    public Mono<ListTagsResponse> getTags(long chatId) {
+        return webClient
+                .get()
+                .uri("/tags")
+                .header("Tg-Chat-Id", String.valueOf(chatId))
+                .retrieve()
+                .bodyToMono(ListTagsResponse.class);
+    }
+
+    public Mono<Void> addTag(long chatId, TagRequest request) {
+        return webClient
+            .post()
+            .uri("/tags")
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(Void.class);
+    }
+
+    public Mono<ListLinksResponse> getLinksByTag(long chatId, TagRequest request) {
+        return webClient
+            .post()
+            .uri("/links/tag")
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(ListLinksResponse.class);
+    }
+
+    public Mono<String> attachTagToLink(long chatId, AttachTagRequest request) {
+        return webClient
+            .post()
+            .uri("/attach-tag")
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(String.class);
+    }
+
+    public Mono<String> detachTagFromLink(long chatId, AttachTagRequest request) {
+        return webClient
+            .method(HttpMethod.DELETE)
+            .uri("/attach-tag")
+            .header("Tg-Chat-Id", String.valueOf(chatId))
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(String.class);
+    }
+
+
 }
