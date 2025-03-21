@@ -112,7 +112,7 @@ public class TrackDialog {
 
                 userStates.put(chatId, State.COMPLETE);
 
-                AddLinkRequest addLinkRequest = new AddLinkRequest(data.url, data.tags, data.filters);
+                AddLinkRequest addLinkRequest = new AddLinkRequest(chatId, data.url, data.tags, data.filters);
                 scrapperHttpClient.addLink(chatId, addLinkRequest).subscribe();
 
                 userData.remove(chatId);
