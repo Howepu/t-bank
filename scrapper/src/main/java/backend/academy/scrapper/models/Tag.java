@@ -36,6 +36,10 @@ public class Tag {
     @JsonProperty("name")
     private String name;
 
+    @Column(name = "chat_id")
+    @JsonProperty("chat_id")
+    private Long chatId;
+
     @ManyToMany(mappedBy = "assignedTags", fetch = FetchType.LAZY)
     private Set<Link> linkSet;
 

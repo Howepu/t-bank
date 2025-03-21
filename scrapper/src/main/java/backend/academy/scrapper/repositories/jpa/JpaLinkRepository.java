@@ -35,4 +35,22 @@ public interface JpaLinkRepository extends JpaRepository<Link, Long> {
 
     Link findByChat(Chat chat);
 
+    // Получение всех ссылок по тегу
+    @Query(value = """
+        SELECT l FROM Link l
+        JOIN l.assignedTags t
+        WHERE t.name = :tagName AND l.chat.chatId = :chatId
+    """)
+    List<Link> findLinksByTag(@Param("tagName") String tagName, @Param("chatId") Long chatId);
+
+    // Привязка тега к ссылке
+    @Modifying
+    @Query(value = "INSERT INTO link_tag (link_id, tag_id) VALUES (:linkId, :tagId)", nativeQuery = true)
+    void attachTagToLink(@Param("linkId") Long linkId, @Param("tagId") Long tagId);
+
+    // Удаление тега у ссылки
+    @Modifying
+    @Query(value = "DELETE FROM link_tag WHERE link_id = :linkId AND tag_id = :tagId", nativeQuery = true)
+    void detachTagFromLink(@Param("linkId") Long linkId, @Param("tagId") Long tagId);
+
 }
