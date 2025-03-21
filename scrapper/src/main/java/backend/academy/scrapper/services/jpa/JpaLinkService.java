@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -41,11 +42,14 @@ public class JpaLinkService implements LinkService {
         Set<Tag> persistedTags = new HashSet<>();
         if (link.assignedTags() != null) {
             for (Tag tag : link.assignedTags()) {
-                // Проверка, существует ли тег
-                Tag existingTag = tagRepository.findByName(tag.name());
+                Tag existingTag = tagRepository.findTagByChatIdAndName(chatId, tag.name());
+
                 if (existingTag == null) {
-                    tagRepository.save(tag);
+                    // Присваиваем chatId перед сохранением
+                    tag.chatId(chatId);
+                    existingTag = tagRepository.save(tag);
                 }
+
                 persistedTags.add(existingTag);
             }
         }
@@ -87,6 +91,32 @@ public class JpaLinkService implements LinkService {
     @Override
     public void updateLastUpdated(Long id, LocalDateTime createdAt) {
         linkRepository.updateCreatedAtById(id, createdAt);
+    }
+
+    @Override
+    public List<Link> findLinksByTag(String tagName, Long chatId) {
+        return linkRepository.findLinksByTag(tagName, chatId);
+    }
+
+    @Override
+    public void attachTagToLink(String url, String name) {
+
+        Tag tag = tagRepository.findByName(name);
+        Link link = linkRepository.findByUrl(url);
+
+
+        linkRepository.attachTagToLink(link.id(), tag.id());
+    }
+
+    @Override
+    public void detachTagFromLink(String url, String name) {
+
+        Tag tag = tagRepository.findByName(name);
+        Link link = linkRepository.findByUrl(url);
+
+
+        linkRepository.detachTagFromLink(link.id(), tag.id());
+
     }
 
 }

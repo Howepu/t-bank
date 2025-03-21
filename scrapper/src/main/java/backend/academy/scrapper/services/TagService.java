@@ -1,8 +1,9 @@
 package backend.academy.scrapper.services;
 
 import backend.academy.scrapper.models.Tag;
+import java.util.List;
 
 public interface TagService {
-    Tag getTagByName(String name, Long chatId);
-    void saveByName(String name);
+    List<Tag> findAll(Long chatId);
+    void saveByName(String name, Long chatId);
 }

@@ -17,15 +17,15 @@ public class JpaTagService implements TagService {
 
 
     @Override
-    public Tag getTagByName(String name, Long chatId) {
-        return null;
+    public List<Tag> findAll (Long chatId) {
+        return tagRepository.findAllByChatId(chatId);
     }
 
     @Override
-    public void saveByName(String name) {
-        if(tagRepository.findByName(name) == null) {
+    public void saveByName(String name, Long chatId) {
+        if(tagRepository.findTagByChatIdAndName(chatId, name) == null) {
 
-            tagRepository.saveTag(name);
+            tagRepository.saveTag(name, chatId);
 
         }
     }
