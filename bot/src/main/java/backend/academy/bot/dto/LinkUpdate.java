@@ -1,16 +1,14 @@
 package backend.academy.bot.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class LinkUpdate {
 
     @JsonProperty("id")

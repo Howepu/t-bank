@@ -1,20 +1,20 @@
 package backend.academy.bot.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class AddLinkRequest {
 
-    @JsonProperty("url")
+    private long chatId;
     private String url;
-
-    @JsonProperty("tags")
     private List<String> tags;
-
-    @JsonProperty("filters")
     private List<String> filters;
 }
