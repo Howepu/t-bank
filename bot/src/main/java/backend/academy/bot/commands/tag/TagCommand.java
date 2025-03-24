@@ -2,6 +2,8 @@ package backend.academy.bot.commands.tag;
 
 import backend.academy.bot.clients.ScrapperHttpClient;
 import backend.academy.bot.commands.CommandHandler;
+import backend.academy.bot.dto.LinkResponse;
+import backend.academy.bot.dto.TagRequest;
 import backend.academy.bot.dto.TagResponse;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -10,36 +12,48 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import java.util.List;
 
-@Component
 @AllArgsConstructor
+@Component
 public class TagCommand implements CommandHandler {
 
     private final ScrapperHttpClient scrapperHttpClient;
     @Override
     public String command() {
-        return "/tags";
+        return "/tag";
     }
 
     @Override
     public String description() {
-        return "Показать все теги пользователя";
+        return "Показать ссылки привязанные к тегу";
     }
 
     @Override
     public SendMessage handle(Update update) {
         long chatId = update.message().chat().id();
-        return scrapperHttpClient.getTags(chatId)
-            .map(tagsResponse -> {
-                // Получаем список объектов TagResponse
-                List<TagResponse> tags = tagsResponse.tags();
-                StringBuilder response = new StringBuilder("Ваши теги:\n");
+        String messageText = update.message().text();
 
-                // Перебираем теги и выводим только имя каждого тега
-                tags.forEach(tag -> response.append(tag.name()).append("\n"));
+        String[] commandParts = messageText.split(" ", 2);
 
-                return new SendMessage(chatId, response.toString());
+        if (commandParts.length < 2) {
+            return new SendMessage(chatId, "Пожалуйста, укажите название тега после команды.");
+        }
+
+        String tagName = commandParts[1];
+
+        TagRequest request = new TagRequest(tagName);
+
+        return scrapperHttpClient
+            .getLinksByTag(chatId, request)
+            .map(response -> {
+                if (response.links().isEmpty()) {
+                    return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
+                }
+                String links = response.links().stream()
+                    .map(link -> "- " + link.url())
+                    .reduce("", (a, b) -> a + "\n" + b);
+                return new SendMessage(chatId, "Ваши отслеживаемые ссылки по тегу " + tagName + ":\n" + links);
             })
-            .onErrorResume(e -> Mono.just(new SendMessage(chatId, "Произошла ошибка при получении тегов.")))
-            .block();  // Блокируем для синхронного выполнения
+            .defaultIfEmpty(new SendMessage(chatId, "Ошибка получения списка ссылок."))
+            .block();
     }
 }

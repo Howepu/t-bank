@@ -3,15 +3,20 @@ package backend.academy.bot.clients;
 import backend.academy.bot.dto.AddLinkRequest;
 import backend.academy.bot.dto.AttachTagRequest;
 import backend.academy.bot.dto.LinkResponse;
+import backend.academy.bot.dto.LinkTagResponse;
+import backend.academy.bot.dto.ListLinkTagResponse;
 import backend.academy.bot.dto.ListLinksResponse;
 import backend.academy.bot.dto.ListTagsResponse;
 import backend.academy.bot.dto.RemoveLinkRequest;
 import backend.academy.bot.dto.TagRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -19,8 +24,8 @@ public class ScrapperHttpClient {
 
     private final WebClient webClient;
 
-    public ScrapperHttpClient(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8081").build();
+    public ScrapperHttpClient(WebClient.Builder webClientBuilder, @Value("${scrapper.base-url}") String baseUrl) {
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
     public Mono<Void> registerChat(long chatId) {
@@ -79,20 +84,19 @@ public class ScrapperHttpClient {
             .bodyToMono(Void.class);
     }
 
-    public Mono<ListLinksResponse> getLinksByTag(long chatId, TagRequest request) {
+    public Mono<ListLinkTagResponse> getLinksByTag(long chatId, TagRequest request) {
         return webClient
             .post()
             .uri("/links/tag")
             .header("Tg-Chat-Id", String.valueOf(chatId))
             .bodyValue(request)
             .retrieve()
-            .bodyToMono(ListLinksResponse.class);
+            .bodyToMono(ListLinkTagResponse.class);
     }
 
-    public Mono<String> attachTagToLink(long chatId, AttachTagRequest request) {
-        return webClient
-            .post()
-            .uri("/attach-tag")
+    public Mono<String> attachTagToLink(Long chatId, AttachTagRequest request) {
+        return webClient.post()
+            .uri("/links/attach-tag")
             .header("Tg-Chat-Id", String.valueOf(chatId))
             .bodyValue(request)
             .retrieve()
@@ -102,7 +106,7 @@ public class ScrapperHttpClient {
     public Mono<String> detachTagFromLink(long chatId, AttachTagRequest request) {
         return webClient
             .method(HttpMethod.DELETE)
-            .uri("/attach-tag")
+            .uri("/links/attach-tag")
             .header("Tg-Chat-Id", String.valueOf(chatId))
             .bodyValue(request)
             .retrieve()

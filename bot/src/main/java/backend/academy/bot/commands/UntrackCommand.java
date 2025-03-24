@@ -31,16 +31,25 @@ public class UntrackCommand implements CommandHandler {
         // Если пользователь не передал ссылку в сообщении
         if (messageText.equals("/untrack")) {
             return new SendMessage(chatId, "Введите ссылку, которую хотите удалить.")
-                    .replyToMessageId(update.message().messageId());
+                .replyToMessageId(update.message().messageId());
         }
 
         // Если пользователь передал ссылку
         String urlToRemove = messageText.replace("/untrack", "").trim();
 
+        // Создаем запрос для удаления ссылки
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(urlToRemove);
 
-        scrapperHttpClient.removeLink(chatId, removeLinkRequest).block();
+        try {
+            // Пытаемся удалить ссылку
+            scrapperHttpClient.removeLink(chatId, removeLinkRequest).block();
 
-        return new SendMessage(chatId, "Ссылка удалена " + removeLinkRequest.url());
+            // Если удаление прошло успешно, отправляем подтверждение
+            return new SendMessage(chatId, "Ссылка удалена: " + removeLinkRequest.url());
+        } catch (Exception e) {
+            // Если возникла ошибка (например, ссылка не найдена), отправляем сообщение об ошибке
+            return new SendMessage(chatId, "Ошибка! Ссылка не найдена или не отслеживается: " + removeLinkRequest.url())
+                .replyToMessageId(update.message().messageId());
+        }
     }
 }
