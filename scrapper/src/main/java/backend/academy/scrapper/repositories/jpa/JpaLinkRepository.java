@@ -53,4 +53,17 @@ public interface JpaLinkRepository extends JpaRepository<Link, Long> {
     @Query(value = "DELETE FROM link_tag WHERE link_id = :linkId AND tag_id = :tagId", nativeQuery = true)
     void detachTagFromLink(@Param("linkId") Long linkId, @Param("tagId") Long tagId);
 
+    @Modifying
+    @Query(value = "UPDATE link SET known_issue_ids = :issueIds WHERE id = :linkId", nativeQuery = true)
+    void updateKnownIssueIds(
+        @Param("linkId") Long linkId,
+        @Param("issueIds") Long[] issueIds); // Используем массив вместо List
+
+    @Modifying
+    @Query(value = "UPDATE link SET known_pr_ids = :prIds WHERE id = :linkId", nativeQuery = true)
+    void updateKnownPrIds(
+        @Param("linkId") Long linkId,
+        @Param("prIds") Long[] prIds); // Используем массив вместо List
+
 }
+

@@ -8,17 +8,19 @@ import backend.academy.scrapper.repositories.jdbc.JdbcLinkRepository;
 import backend.academy.scrapper.repositories.jdbc.JdbcTagRepository;
 import backend.academy.scrapper.services.LinkService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+@Slf4j
 @AllArgsConstructor
 public class JdbcLinkService implements LinkService {
 
     private final JdbcLinkRepository linkRepository;
     private final ChatService chatService;
     private final JdbcTagRepository tagRepository;
+
+
 
     @Override
     public Link addLink(Long chatId, Link link) {
@@ -30,29 +32,10 @@ public class JdbcLinkService implements LinkService {
             throw new IllegalStateException("Чат не зарегистрирован");
         }
 
-        // Получение чата
-        Chat chat = chatService.getChatById(chatId);
-        link.chat(chat);
+        linkRepository.addLink(link, chatId);
 
-        // Обработка тегов
-        Set<Tag> persistedTags = new HashSet<>();
-        if (link.assignedTags() != null) {
-            for (Tag tag : link.assignedTags()) {
-                // Проверка, существует ли тег
-                Tag existingTag = tagRepository.getByName(tag.name());
-                if (existingTag != null) {
-                    persistedTags.add(existingTag);
-                } else {
-                    tagRepository.add(tag.name());
-                }
-            }
-        }
-
-        link.assignedTags(persistedTags);
-
-        return linkRepository.add(link);
+        return link;
     }
-
     @Override
     public Link removeLink(Long chatId, String url) {
         if (!chatService.isChatRegistered(chatId)) {
@@ -63,23 +46,68 @@ public class JdbcLinkService implements LinkService {
             throw new IllegalArgumentException("Chat ID и URL должны быть предоставлены и не могут быть пустыми");
         }
 
+        // Поиск записи по URL
         Link link = linkRepository.findByUrl(url);
-        linkRepository.delete(url);
+        if (link == null) {
+            throw new IllegalArgumentException("Ссылка не найдена для удаления");
+        }
+
+        // Логируем перед удалением
+        log.info("Удаление ссылки с URL: {}", link.url());
+
+        // Удаляем запись
+        linkRepository.deleteByUrl(url);
+
+        // Логируем после удаления
+        log.info("Ссылка с URL: {} успешно удалена", url);
 
         return link;
     }
 
 
 
+
     @Override
     public List<Link> getAllLinks(Long chatId) {
 
-        return linkRepository.findAllByChatChatId(chatId);
+        return linkRepository.findAllLinksByChatId(chatId);
     }
 
     @Override
     public void updateLastUpdated(Long id, LocalDateTime createdAt) {
-        linkRepository.updateCreatedAtById(id, createdAt);
+        linkRepository.updateCreatedAt(id, createdAt);
     }
+
+    @Override
+    public List<Link> findLinksByTag(String tagName, Long chatId) {
+        return linkRepository.findLinksByTag(tagName, chatId);
+    }
+
+    @Override
+    public void attachTagToLink(String url, String name) {
+        Link link = linkRepository.findByUrl(url);
+        Tag tag = tagRepository.getByName(name);
+        linkRepository.attachTagToLink(link.id(), tag.id());
+    }
+
+    @Override
+    public void detachTagFromLink(String url, String name) {
+        Link link = linkRepository.findByUrl(url);
+        Tag tag = tagRepository.getByName(name);
+        linkRepository.detachTagFromLink(link.id(), tag.id());
+
+    }
+
+    @Override
+    public void updateLinkIssues(Long linkId, List<Long> issueIds) {
+        linkRepository.updateLinkIssues(linkId, issueIds);
+    }
+
+    @Override
+    public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
+        linkRepository.updateLinkPullRequests(linkId, prIds);
+    }
+
+
 }
 

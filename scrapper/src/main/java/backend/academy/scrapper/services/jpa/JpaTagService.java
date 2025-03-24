@@ -5,15 +5,16 @@ import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import backend.academy.scrapper.repositories.jpa.JpaTagRepository;
 import backend.academy.scrapper.services.TagService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class JpaTagService implements TagService {
 
     private final JpaTagRepository tagRepository;
-    private final JpaLinkRepository linkRepository;
 
 
     @Override
@@ -27,6 +28,8 @@ public class JpaTagService implements TagService {
 
             tagRepository.saveTag(name, chatId);
 
+        } else {
+            log.info("Такой тег {} в чате {} уже существует", name, chatId);
         }
     }
 }

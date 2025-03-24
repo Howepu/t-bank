@@ -119,4 +119,14 @@ public class JpaLinkService implements LinkService {
 
     }
 
+    public void updateLinkIssues(Long linkId, List<Long> issueIds) {
+        Long[] idsArray = issueIds.toArray(new Long[0]);
+        linkRepository.updateKnownIssueIds(linkId, idsArray);
+    }
+
+    public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
+        Long[] idsArray = prIds.toArray(new Long[0]);
+        linkRepository.updateKnownPrIds(linkId, idsArray);
+    }
+
 }

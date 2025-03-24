@@ -24,6 +24,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "tag")
+@ToString
 public class Tag {
 
     @Id
@@ -42,6 +43,7 @@ public class Tag {
 
     @ManyToMany(mappedBy = "assignedTags", fetch = FetchType.LAZY)
     private Set<Link> linkSet;
+
 
     @Override
     public boolean equals(Object o) {

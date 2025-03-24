@@ -14,3 +14,4 @@ public interface ChatService {
 
     Set<Chat> getAllRegisteredChatIds();
 }
+

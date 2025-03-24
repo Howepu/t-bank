@@ -15,4 +15,6 @@ public interface LinkService {
     List<Link> findLinksByTag(String tagName, Long chatId);
     void attachTagToLink(String url, String name);
     void detachTagFromLink(String url, String name);
+    void updateLinkIssues(Long linkId, List<Long> issueIds);
+    void updateLinkPullRequests(Long linkId, List<Long> prIds);
 }
