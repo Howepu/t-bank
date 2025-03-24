@@ -92,40 +92,36 @@ public class LinkCheckService {
     }
 
     private void processGitHubIssues(Link link, List<GitHubIssuePullRequest> issues) {
-        boolean updated = false;
-        List<Long> knownIssueIds = link.knownIssueIds() != null ? link.knownIssueIds() : new ArrayList<>();
-        link.knownIssueIds(knownIssueIds);
-
+        List<Long> currentIssueIds = new ArrayList<>();
         for (GitHubIssuePullRequest issue : issues) {
-            if (!knownIssueIds.contains(issue.id())) {
-                knownIssueIds.add(issue.id());
-                sendIssueOrPRUpdate(link, issue, "Issue");
-                updated = true;
+            currentIssueIds.add(issue.id());
+
+            // Проверяем, есть ли этот issue в известных
+            if (link.knownIssueIds() == null || !link.knownIssueIds().contains(issue.id())) {
+                sendIssueOrPRUpdate(link, issue, "issue");
             }
         }
 
-        if (updated) {
-            linkService.addLink(link.chat().chatId(), link);
-        }
+        // Обновляем список известных issues в БД
+        linkService.updateLinkIssues(link.id(), currentIssueIds);
     }
 
     private void processGitHubPullRequests(Link link, List<GitHubIssuePullRequest> prs) {
-        boolean updated = false;
-        List<Long> knownPrIds = link.knownPrIds() != null ? link.knownPrIds() : new ArrayList<>();
-        link.knownPrIds(knownPrIds);
-
+        List<Long> currentPrIds = new ArrayList<>();
         for (GitHubIssuePullRequest pr : prs) {
-            if (!knownPrIds.contains(pr.id())) {
-                knownPrIds.add(pr.id());
-                sendIssueOrPRUpdate(link, pr, "Pull Request");
-                updated = true;
+            currentPrIds.add(pr.id());
+
+            // Проверяем, есть ли этот PR в известных
+            if (link.knownPrIds() == null || !link.knownPrIds().contains(pr.id())) {
+                sendIssueOrPRUpdate(link, pr, "pull request");
             }
         }
 
-        if (updated) {
-            linkService.addLink(link.chat().chatId(), link);
-        }
+        // Обновляем список известных PRs в БД
+        linkService.updateLinkPullRequests(link.id(), currentPrIds);
     }
+
+
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
         if (link.chat() == null) {

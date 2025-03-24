@@ -93,7 +93,7 @@ public class StackOverflowCheckService {
                 }
 
                 if (updated) {
-                    linkService.addLink(link.chat().chatId(), link);
+                    linkService.updateLinkIssues(link.id(), knownIssueIds);
                 }
             });
         });
