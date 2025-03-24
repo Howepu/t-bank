@@ -2,6 +2,8 @@ package backend.academy.scrapper.controllers;
 
 import backend.academy.scrapper.dto.AttachTagRequest;
 import backend.academy.scrapper.dto.LinkResponse;
+import backend.academy.scrapper.dto.LinkTagResponse;
+import backend.academy.scrapper.dto.ListLinkTagResponse;
 import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.dto.RemoveLinkRequest;
 import backend.academy.scrapper.dto.TagRequest;
@@ -35,7 +37,7 @@ public class LinkController {
         }
 
         String sanitizedChatId = String.valueOf(chatId).replaceAll("[\r\n]", "");
-        log.info("Запрос всех ссылок для чата " + sanitizedChatId);
+        log.info("Запрос всех ссылок для чата {}", sanitizedChatId);
 
         List<LinkResponse> links = linkService.getAllLinks(chatId).stream()
             .map(link -> new LinkResponse(
@@ -46,7 +48,7 @@ public class LinkController {
             ))
             .toList();
 
-        log.info("Найдено " + links.size() + " ссылок для чата " + sanitizedChatId);
+        log.info("Найдено {} ссылок для чата {}", links.size(), sanitizedChatId);
         return ResponseEntity.ok(new ListLinksResponse(links, links.size()));
     }
 
@@ -55,10 +57,10 @@ public class LinkController {
         // Санитизируем URL и chatId перед логированием
         String sanitizedUrl = link.url().replaceAll("[\r\n]", "");
         String sanitizedChatId = String.valueOf(chatId).replaceAll("[\r\n]", "");
-        log.info("Добавление новой ссылки: " + sanitizedUrl + " для чата " + sanitizedChatId);
+        log.info("Добавление новой ссылки: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
         Link savedLink = linkService.addLink(chatId, link);
-        log.info("Ссылка успешно добавлена: " + sanitizedUrl + " для чата " + sanitizedChatId);
+        log.info("Ссылка успешно добавлена: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
         return ResponseEntity.ok(
             new LinkResponse(chatId, savedLink.url(), savedLink.assignedTags(), savedLink.filters()));
@@ -66,21 +68,21 @@ public class LinkController {
 
     @DeleteMapping
     public ResponseEntity<LinkResponse> removeLink(
-            @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest removeLinkRequest) {
+        @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest removeLinkRequest) {
         // Санитизируем URL и chatId перед логированием
         String sanitizedUrl = removeLinkRequest.url().replaceAll("[\r\n]", "");
         String sanitizedChatId = String.valueOf(chatId).replaceAll("[\r\n]", "");
-        log.info("Запрос на удаление ссылки: " + sanitizedUrl + " для чата " + sanitizedChatId);
+        log.info("Запрос на удаление ссылки: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
         Link link = linkService.removeLink(chatId, removeLinkRequest.url());
 
         // Убираем проверку на null, так как метод removeLink не должен возвращать null
-        log.info("Ссылка успешно удалена: " + sanitizedUrl + " для чата " + sanitizedChatId);
+        log.info("Ссылка успешно удалена: {} для чата {}", sanitizedUrl, sanitizedChatId);
         return ResponseEntity.ok(new LinkResponse(chatId, link.url(), link.assignedTags(), link.filters()));
     }
 
     @PostMapping("/tag")
-    public ResponseEntity<ListLinksResponse> getLinksByTag(
+    public ResponseEntity<ListLinkTagResponse> getLinksByTag(
         @RequestHeader("Tg-Chat-Id") Long chatId,
         @RequestBody TagRequest tagRequest
     ) {
@@ -91,17 +93,14 @@ public class LinkController {
         String tagName = tagRequest.name(); // Достаём имя тега из DTO
         log.info("Запрос всех ссылок по тегу '{}' для чата {}", tagName, chatId);
 
-        List<LinkResponse> links = linkService.findLinksByTag(tagName, chatId).stream()
-            .map(link -> new LinkResponse(
-                link.chat().chatId(),
-                link.url(),
-                link.assignedTags(),
-                link.filters()
+        List<LinkTagResponse> links = linkService.findLinksByTag(tagName, chatId).stream()
+            .map(link -> new LinkTagResponse(
+                link.url()
             ))
             .toList();
 
         log.info("Найдено {} ссылок по тегу '{}' для чата {}", links.size(), tagName, chatId);
-        return ResponseEntity.ok(new ListLinksResponse(links, links.size()));
+        return ResponseEntity.ok(new ListLinkTagResponse(links, links.size()));
     }
 
     @PostMapping("/attach-tag")
@@ -114,6 +113,7 @@ public class LinkController {
         }
 
         linkService.attachTagToLink(request.url(), request.tagName());
+        log.info("Тег '{}' привязан к ссылке '{}'", request.tagName(), request.url());
         return ResponseEntity.ok("Тег '" + request.tagName() + "' привязан к ссылке '" + request.url() + "'");
     }
 
@@ -127,6 +127,7 @@ public class LinkController {
         }
 
         linkService.detachTagFromLink(request.url(), request.tagName());
+        log.info("Тег '{}' отвязан от ссылки '{}'", request.tagName(), request.url());
         return ResponseEntity.ok("Тег '" + request.tagName() + "' отвязан от ссылки '" + request.url() + "'");
     }
 }

@@ -5,8 +5,10 @@ import backend.academy.scrapper.repositories.jpa.JpaChatRepository;
 import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import backend.academy.scrapper.repositories.jpa.JpaTagRepository;
 import backend.academy.scrapper.services.LinkService;
+import backend.academy.scrapper.services.TagService;
 import backend.academy.scrapper.services.jpa.JpaChatService;
 import backend.academy.scrapper.services.jpa.JpaLinkService;
+import backend.academy.scrapper.services.jpa.JpaTagService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,5 +32,12 @@ public class JpaAccessConfiguration {
         JpaTagRepository tagRepository
     ) {
         return new JpaLinkService(jpaLinkRepository, chatService, tagRepository);
+    }
+
+    @Bean
+    public TagService tagService(
+        JpaTagRepository tagRepository
+    ) {
+        return new JpaTagService(tagRepository);
     }
 }
