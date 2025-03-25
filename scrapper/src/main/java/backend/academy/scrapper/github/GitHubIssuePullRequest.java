@@ -1,13 +1,12 @@
 package backend.academy.scrapper.github;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,7 +29,8 @@ public class GitHubIssuePullRequest {
     private String body;
 
     public LocalDateTime getCreatedAtAsDateTime() {
-        return createdAt != null ? Instant.parse(createdAt).atZone(ZoneOffset.UTC).toLocalDateTime() : null;
+        return createdAt != null
+                ? Instant.parse(createdAt).atZone(ZoneOffset.UTC).toLocalDateTime()
+                : null;
     }
-
 }

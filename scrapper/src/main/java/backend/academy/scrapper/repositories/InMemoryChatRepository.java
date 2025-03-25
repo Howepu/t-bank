@@ -1,13 +1,13 @@
-//package backend.academy.scrapper.repositories;
+// package backend.academy.scrapper.repositories;
 //
-//import backend.academy.scrapper.models.Chat;
-//import java.util.HashSet;
-//import java.util.Objects;
-//import java.util.Set;
-//import org.springframework.stereotype.Repository;
+// import backend.academy.scrapper.models.Chat;
+// import java.util.HashSet;
+// import java.util.Objects;
+// import java.util.Set;
+// import org.springframework.stereotype.Repository;
 //
-//@Repository
-//public class InMemoryChatRepository implements ChatRepository {
+// @Repository
+// public class InMemoryChatRepository implements ChatRepository {
 //
 //    private static final Set<Chat> registeredChats = new HashSet<>();
 //
@@ -30,4 +30,4 @@
 //        }
 //        return false;
 //    }
-//}
+// }

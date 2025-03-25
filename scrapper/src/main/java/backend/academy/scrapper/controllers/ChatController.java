@@ -19,32 +19,38 @@ public class ChatController {
     public ResponseEntity<Void> registerChat(@PathVariable Long id) {
         // Валидация ID
         if (id == null || id <= 0) {
-            log.info("Недопустимый ID: " + id);
+            log.info("Недопустимый ID: {}", sanitize(id));
             return ResponseEntity.badRequest().build();
         }
 
-        log.info("Регистрация нового чата с ID " + id);
+        String sanitizedId = sanitize(id);
+        log.info("Регистрация нового чата с ID {}", sanitizedId);
 
         chatService.registerChat(id);
 
-        log.info("Чат с ID {} успешно зарегистрирован " + id);
+        log.info("Чат с ID {} успешно зарегистрирован", sanitizedId);
         return ResponseEntity.ok().build();
     }
 
     // Удалить чат
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removeChat(@PathVariable Long id) {
-
         if (id == null || id <= 0) {
-            log.info("Недопустимый ID: " + id);
+            log.info("Попытка удаления с недопустимым ID: {}", sanitize(id));
             return ResponseEntity.badRequest().build();
         }
 
-        log.info("Удаление чата с ID: " + id);
+        String sanitizedId = sanitize(id);
+        log.info("Удаление чата с ID: {}", sanitizedId);
 
         chatService.removeChat(id);
 
-        log.info("Чат с ID {} успешно удален " + id);
+        log.info("Чат с ID {} успешно удален", sanitizedId);
         return ResponseEntity.ok().build();
+    }
+
+    // Метод для санитизации данных перед логгированием
+    private String sanitize(Long value) {
+        return value != null ? value.toString().replaceAll("[\r\n]", "") : "null";
     }
 }

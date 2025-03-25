@@ -7,17 +7,14 @@ import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import backend.academy.scrapper.repositories.jpa.JpaTagRepository;
 import backend.academy.scrapper.services.LinkService;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class JpaLinkService implements LinkService {
-
 
     private final JpaLinkRepository linkRepository;
     private final JpaChatService chatService;
@@ -84,8 +81,6 @@ public class JpaLinkService implements LinkService {
     public List<Link> getAllLinks(Long chatId) {
 
         return linkRepository.findAllByChatChatId(chatId);
-
-
     }
 
     @Override
@@ -104,7 +99,6 @@ public class JpaLinkService implements LinkService {
         Tag tag = tagRepository.findByName(name);
         Link link = linkRepository.findByUrl(url);
 
-
         linkRepository.attachTagToLink(link.id(), tag.id());
     }
 
@@ -114,19 +108,18 @@ public class JpaLinkService implements LinkService {
         Tag tag = tagRepository.findByName(name);
         Link link = linkRepository.findByUrl(url);
 
-
         linkRepository.detachTagFromLink(link.id(), tag.id());
-
     }
 
+    @Override
     public void updateLinkIssues(Long linkId, List<Long> issueIds) {
         Long[] idsArray = issueIds.toArray(new Long[0]);
         linkRepository.updateKnownIssueIds(linkId, idsArray);
     }
 
+    @Override
     public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
         Long[] idsArray = prIds.toArray(new Long[0]);
         linkRepository.updateKnownPrIds(linkId, idsArray);
     }
-
 }

@@ -1,17 +1,17 @@
-//package backend.academy.scrapper.repositories;
+// package backend.academy.scrapper.repositories;
 //
-//import backend.academy.scrapper.models.Link;
-//import java.time.LocalDateTime;
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.HashSet;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Set;
-//import org.springframework.stereotype.Repository;
+// import backend.academy.scrapper.models.Link;
+// import java.time.LocalDateTime;
+// import java.util.ArrayList;
+// import java.util.HashMap;
+// import java.util.HashSet;
+// import java.util.List;
+// import java.util.Map;
+// import java.util.Set;
+// import org.springframework.stereotype.Repository;
 //
-//@Repository
-//public class InMemoryLinkRepository implements LinkRepository {
+// @Repository
+// public class InMemoryLinkRepository implements LinkRepository {
 //
 //    private final List<Link> links = new ArrayList<>();
 //    private final Map<String, LocalDateTime> linkLastUpdated = new HashMap<>();
@@ -72,4 +72,4 @@
 //    public void markInitialized(String url) {
 //        initializedLinks.add(url);
 //    }
-//}
+// }

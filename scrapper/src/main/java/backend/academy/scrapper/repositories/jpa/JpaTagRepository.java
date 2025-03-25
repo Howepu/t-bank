@@ -2,13 +2,11 @@ package backend.academy.scrapper.repositories.jpa;
 
 import backend.academy.scrapper.models.Tag;
 import io.lettuce.core.dynamic.annotation.Param;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Transactional
 public interface JpaTagRepository extends JpaRepository<Tag, Long> {
@@ -23,5 +21,4 @@ public interface JpaTagRepository extends JpaRepository<Tag, Long> {
     Tag findTagByChatId(Long chatId);
 
     Tag findTagByChatIdAndName(Long chatId, String name);
-
 }

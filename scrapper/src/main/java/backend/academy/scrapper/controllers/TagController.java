@@ -1,24 +1,19 @@
 package backend.academy.scrapper.controllers;
 
-import backend.academy.scrapper.dto.LinkResponse;
-import backend.academy.scrapper.dto.ListLinksResponse;
 import backend.academy.scrapper.dto.ListTagsResponse;
 import backend.academy.scrapper.dto.TagRequest;
 import backend.academy.scrapper.dto.TagResponse;
-import backend.academy.scrapper.models.Link;
-import backend.academy.scrapper.models.Tag;
 import backend.academy.scrapper.services.TagService;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
@@ -36,16 +31,13 @@ public class TagController {
         }
 
         String sanitizedChatId = String.valueOf(chatId).replaceAll("[\r\n]", "");
-        log.info("Запрос всех ссылок для чата " + sanitizedChatId);
+        log.info("Запрос всех ссылок для чата {}", sanitizedChatId);
 
         List<TagResponse> tags = tagService.findAll(chatId).stream()
-            .map(tag -> new TagResponse(
-                tag.chatId(),
-                tag.name()
-            ))
-            .toList();
+                .map(tag -> new TagResponse(tag.chatId(), tag.name()))
+                .toList();
 
-        log.info("Найдено " + tags.size() + " тэгов для чата " + sanitizedChatId);
+        log.info("Найдено {} тэгов для чата {}", tags.size(), sanitizedChatId);
         return ResponseEntity.ok(new ListTagsResponse(tags, tags.size()));
     }
 
@@ -56,7 +48,4 @@ public class TagController {
 
         return ResponseEntity.ok().build();
     }
-
-
-
 }

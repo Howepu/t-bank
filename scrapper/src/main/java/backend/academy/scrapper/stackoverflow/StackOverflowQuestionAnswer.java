@@ -38,7 +38,7 @@ public class StackOverflowQuestionAnswer {
 
     public LocalDateTime getCreationDate() {
         return creationDate != null
-            ? Instant.ofEpochSecond(creationDate).atZone(ZoneOffset.UTC).toLocalDateTime()
-            : null;
+                ? Instant.ofEpochSecond(creationDate).atZone(ZoneOffset.UTC).toLocalDateTime()
+                : null;
     }
 }

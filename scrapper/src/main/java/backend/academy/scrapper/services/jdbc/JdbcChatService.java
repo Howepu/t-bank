@@ -1,18 +1,17 @@
 package backend.academy.scrapper.services.jdbc;
 
 import backend.academy.scrapper.models.Chat;
-import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.repositories.jdbc.JdbcChatRepository;
+import backend.academy.scrapper.services.ChatService;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import java.util.Set;
 
 @AllArgsConstructor
 @ConditionalOnProperty(prefix = "app", name = "database-access-type", havingValue = "jdbc")
 public class JdbcChatService implements ChatService {
 
     private final JdbcChatRepository jdbcChatRepository;
-
 
     @Override
     public void registerChat(Long chatId) {
@@ -21,11 +20,7 @@ public class JdbcChatService implements ChatService {
 
     @Override
     public boolean isChatRegistered(Long chatId) {
-        if (jdbcChatRepository.getByChatId(chatId) != null) {
-            return true;
-        } else {
-            return false;
-        }
+        return jdbcChatRepository.getByChatId(chatId) != null;
     }
 
     @Override

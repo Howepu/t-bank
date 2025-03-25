@@ -1,16 +1,15 @@
 package backend.academy.scrapper.services.jdbc;
 
-import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.models.Tag;
-import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.repositories.jdbc.JdbcLinkRepository;
 import backend.academy.scrapper.repositories.jdbc.JdbcTagRepository;
+import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.services.LinkService;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor
@@ -19,8 +18,6 @@ public class JdbcLinkService implements LinkService {
     private final JdbcLinkRepository linkRepository;
     private final ChatService chatService;
     private final JdbcTagRepository tagRepository;
-
-
 
     @Override
     public Link addLink(Long chatId, Link link) {
@@ -36,6 +33,7 @@ public class JdbcLinkService implements LinkService {
 
         return link;
     }
+
     @Override
     public Link removeLink(Long chatId, String url) {
         if (!chatService.isChatRegistered(chatId)) {
@@ -63,9 +61,6 @@ public class JdbcLinkService implements LinkService {
 
         return link;
     }
-
-
-
 
     @Override
     public List<Link> getAllLinks(Long chatId) {
@@ -95,7 +90,6 @@ public class JdbcLinkService implements LinkService {
         Link link = linkRepository.findByUrl(url);
         Tag tag = tagRepository.getByName(name);
         linkRepository.detachTagFromLink(link.id(), tag.id());
-
     }
 
     @Override
@@ -107,7 +101,4 @@ public class JdbcLinkService implements LinkService {
     public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
         linkRepository.updateLinkPullRequests(linkId, prIds);
     }
-
-
 }
-

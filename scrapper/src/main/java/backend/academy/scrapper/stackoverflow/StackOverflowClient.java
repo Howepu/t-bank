@@ -30,16 +30,17 @@ public class StackOverflowClient {
 
     public Mono<StackOverflowQuestionAnswer> getLatestAnswer(String questionId) {
         return webClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/questions/{id}/answers")
-                .queryParam("site", "stackoverflow")
-                .queryParam("order", "desc")
-                .queryParam("sort", "creation")
-                .queryParam("pagesize", 1)
-                .build(questionId))
-            .retrieve()
-            .bodyToMono(StackOverflowResponse.class)
-            .map(response -> response.items().isEmpty() ? null : response.items().get(0));
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/questions/{id}/answers")
+                        .queryParam("site", "stackoverflow")
+                        .queryParam("order", "desc")
+                        .queryParam("sort", "creation")
+                        .queryParam("pagesize", 1)
+                        .build(questionId))
+                .retrieve()
+                .bodyToMono(StackOverflowResponse.class)
+                .map(response ->
+                        response.items().isEmpty() ? null : response.items().get(0));
     }
 }

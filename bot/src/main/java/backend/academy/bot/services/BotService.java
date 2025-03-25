@@ -21,6 +21,7 @@ public class BotService {
         String message = "Обновления по ссылке: " + update.url() + "\n" + update.description();
 
         log.info("Получено обновление: {}", message);
+        log.info(update.tgChatIds().toString());
 
         for (Long chatId : update.tgChatIds()) {
             telegramClient.sendMessage(chatId, message);

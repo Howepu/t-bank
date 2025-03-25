@@ -24,7 +24,6 @@ public class TelegramBotService {
     private final Map<String, CommandHandler> commandHandlers;
     private final TrackDialog trackDialog;
 
-
     public TelegramBotService(List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
         String botToken = System.getenv("TELEGRAM_TOKEN");
         this.telegramBot = new TelegramBot(botToken);

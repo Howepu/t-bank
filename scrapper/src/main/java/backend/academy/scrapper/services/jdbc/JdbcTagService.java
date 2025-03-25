@@ -3,11 +3,11 @@ package backend.academy.scrapper.services.jdbc;
 import backend.academy.scrapper.models.Tag;
 import backend.academy.scrapper.repositories.jdbc.JdbcTagRepository;
 import backend.academy.scrapper.services.TagService;
+import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
 
 @AllArgsConstructor
 @Service
@@ -15,8 +15,9 @@ import java.util.Optional;
 public class JdbcTagService implements TagService {
 
     private final JdbcTagRepository tagRepository;
+
     @Override
-    public List<Tag> findAll (Long chatId) {
+    public List<Tag> findAll(Long chatId) {
         return tagRepository.getAllByChatId(chatId);
     }
 
