@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 public class AddTagCommand implements CommandHandler {
 
     private final ScrapperHttpClient scrapperHttpClient;
+
     @Override
     public String command() {
         return "/addtag";
@@ -35,15 +36,16 @@ public class AddTagCommand implements CommandHandler {
             return new SendMessage(chatId, "Пожалуйста, укажите название тега после команды.");
         }
 
-        String tagName = commandParts[1];  // Получаем название тега
+        String tagName = commandParts[1]; // Получаем название тега
 
         // Создаем запрос для добавления тега
         TagRequest request = new TagRequest(tagName);
 
         // Добавляем тег через сервис
-        return scrapperHttpClient.addTag(chatId, request)
-            .map(response -> new SendMessage(chatId, "Тег \"" + tagName + "\" успешно добавлен."))
-            .onErrorResume(e -> Mono.just(new SendMessage(chatId, "Произошла ошибка при добавлении тега.")))
-            .block(); // блокируем для синхронного выполнения
+        return scrapperHttpClient
+                .addTag(chatId, request)
+                .map(response -> new SendMessage(chatId, "Тег \"" + tagName + "\" успешно добавлен."))
+                .onErrorResume(e -> Mono.just(new SendMessage(chatId, "Произошла ошибка при добавлении тега.")))
+                .block(); // блокируем для синхронного выполнения
     }
 }

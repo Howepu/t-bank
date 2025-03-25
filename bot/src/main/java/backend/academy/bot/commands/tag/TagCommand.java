@@ -2,21 +2,18 @@ package backend.academy.bot.commands.tag;
 
 import backend.academy.bot.clients.ScrapperHttpClient;
 import backend.academy.bot.commands.CommandHandler;
-import backend.academy.bot.dto.LinkResponse;
 import backend.academy.bot.dto.TagRequest;
-import backend.academy.bot.dto.TagResponse;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
-import java.util.List;
 
 @AllArgsConstructor
 @Component
 public class TagCommand implements CommandHandler {
 
     private final ScrapperHttpClient scrapperHttpClient;
+
     @Override
     public String command() {
         return "/tag";
@@ -43,17 +40,17 @@ public class TagCommand implements CommandHandler {
         TagRequest request = new TagRequest(tagName);
 
         return scrapperHttpClient
-            .getLinksByTag(chatId, request)
-            .map(response -> {
-                if (response.links().isEmpty()) {
-                    return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
-                }
-                String links = response.links().stream()
-                    .map(link -> "- " + link.url())
-                    .reduce("", (a, b) -> a + "\n" + b);
-                return new SendMessage(chatId, "Ваши отслеживаемые ссылки по тегу " + tagName + ":\n" + links);
-            })
-            .defaultIfEmpty(new SendMessage(chatId, "Ошибка получения списка ссылок."))
-            .block();
+                .getLinksByTag(chatId, request)
+                .map(response -> {
+                    if (response.links().isEmpty()) {
+                        return new SendMessage(chatId, "Вы пока не отслеживаете ни одной ссылки.");
+                    }
+                    String links = response.links().stream()
+                            .map(link -> "- " + link.url())
+                            .reduce("", (a, b) -> a + "\n" + b);
+                    return new SendMessage(chatId, "Ваши отслеживаемые ссылки по тегу " + tagName + ":\n" + links);
+                })
+                .defaultIfEmpty(new SendMessage(chatId, "Ошибка получения списка ссылок."))
+                .block();
     }
 }

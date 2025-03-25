@@ -1,20 +1,16 @@
 package backend.academy.bot.commands.tag;
 
 import backend.academy.bot.clients.ScrapperHttpClient;
-import backend.academy.bot.commands.CommandHandler;
 import backend.academy.bot.dto.AttachTagRequest;
-import backend.academy.bot.dto.TagRequest;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.SendMessage;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-@AllArgsConstructor
 @Component
-public class AttachTagCommand implements CommandHandler {
+public class AttachTagCommand extends BaseTagCommand {
 
-    private final ScrapperHttpClient scrapperHttpClient;
+    public AttachTagCommand(ScrapperHttpClient scrapperHttpClient) {
+        super(scrapperHttpClient);
+    }
 
     @Override
     public String command() {
@@ -27,26 +23,17 @@ public class AttachTagCommand implements CommandHandler {
     }
 
     @Override
-    public SendMessage handle(Update update) {
-        long chatId = update.message().chat().id();
-        String messageText = update.message().text();
+    protected String getSuccessMessage(String tagName, String url) {
+        return "Тег \"" + tagName + "\" успешно привязан к ссылке" + ": " + url;
+    }
 
-        String[] commandParts = messageText.split(" ", 3);
+    @Override
+    protected String getErrorMessage() {
+        return "Произошла ошибка при связывании.";
+    }
 
-        if (commandParts.length < 3 || commandParts.length > 4) {
-            return new SendMessage(chatId, "Пожалуйста, укажите название тега и ссылки после команды.");
-        }
-
-        String url = commandParts[1];
-        String tagName = commandParts[2];
-
-
-        AttachTagRequest request = new AttachTagRequest(url, tagName);
-
-        return scrapperHttpClient.attachTagToLink(chatId, request)
-            .map(response -> new SendMessage(chatId, "Тег \"" + tagName + "\" успешно привязан к ссылке" +
-                ": " + url))
-            .onErrorResume(e -> Mono.just(new SendMessage(chatId, "Произошла ошибка при связывание.")))
-            .block();
+    @Override
+    protected Mono<?> executeScrapperAction(long chatId, AttachTagRequest request) {
+        return scrapperHttpClient.attachTagToLink(chatId, request);
     }
 }
