@@ -1,6 +1,5 @@
 package backend.academy.scrapper.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class AttachTagRequest {
     @JsonProperty("url")
     private String url;
+
     @JsonProperty("tagName")
     private String tagName;
 }
-

@@ -1,13 +1,11 @@
 package backend.academy.bot.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micrometer.core.instrument.Tag;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor

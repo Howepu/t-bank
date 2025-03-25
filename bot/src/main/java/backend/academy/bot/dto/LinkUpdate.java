@@ -1,8 +1,8 @@
 package backend.academy.bot.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
 import java.util.List;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
