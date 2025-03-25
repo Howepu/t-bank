@@ -7,6 +7,7 @@ import backend.academy.scrapper.github.GitHubIssuePullRequest;
 import backend.academy.scrapper.github.GitHubRepository;
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -31,6 +35,11 @@ public class LinkCheckService {
     private static final String ISSUE_PR_UPDATE_TEMPLATE = "🔔 Новое %s в репозитории **%s**:%n"
         + "👤 Автор: %s%n" + "📅 Время создания: %s%n" + "✉️ %s%n";
 
+    private static final int BATCH_SIZE = 250;
+    private static final int NUM_THREADS = 4;
+
+    private final ExecutorService executorService;
+
     public LinkCheckService(
         GitHubClient gitHubClient,
         LinkService linkService,
@@ -40,6 +49,7 @@ public class LinkCheckService {
         this.linkService = linkService;
         this.botHttpClient = botHttpClient;
         this.chatService = chatService;
+        this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
     }
 
     @Scheduled(fixedRate = 5000)
@@ -49,14 +59,28 @@ public class LinkCheckService {
         Set<Chat> chatIds = chatService.getAllRegisteredChatIds();
         for (Chat chat : chatIds) {
             List<Link> links = linkService.getAllLinks(chat.chatId());
-            for (Link link : links) {
-                if (isGitHubRepo(link.url())) {
-                    log.info(link.url());
-                    checkGitHubRepo(link);
-                }
+
+            // Разделяем ссылки на батчи
+            int totalLinks = links.size();
+            for (int i = 0; i < totalLinks; i += BATCH_SIZE) {
+                int end = Math.min(i + BATCH_SIZE, totalLinks);
+                List<Link> batch = links.subList(i, end);
+
+                // Отправляем батч в поток
+                executorService.submit(() -> processBatch(batch));
             }
         }
+
         log.info("Finished link check.");
+    }
+
+    private void processBatch(List<Link> batch) {
+        for (Link link : batch) {
+            if (isGitHubRepo(link.url())) {
+                log.info(link.url());
+                checkGitHubRepo(link);
+            }
+        }
     }
 
     private void checkGitHubRepo(Link link) {
@@ -121,8 +145,6 @@ public class LinkCheckService {
         linkService.updateLinkPullRequests(link.id(), currentPrIds);
     }
 
-
-
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
         if (link.chat() == null) {
             log.warn("Chat is null for link: {}", link.url());
@@ -167,5 +189,13 @@ public class LinkCheckService {
 
     private boolean isGitHubRepo(String url) {
         return url != null && url.matches("https://github\\.com/[^/]+/[^/]+");
+    }
+
+    @PreDestroy
+    public void shutdownExecutor() throws InterruptedException {
+        executorService.shutdown();
+        if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            executorService.shutdownNow();
+        }
     }
 }
