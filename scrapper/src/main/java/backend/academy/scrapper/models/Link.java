@@ -58,7 +58,7 @@ public class Link {
     private List<Long> knownPrIds = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "chat_id", referencedColumnName = "chat_id", nullable = false)
+    @JoinColumn(name = "chat_id", referencedColumnName = "chat_id")
     private Chat chat;
 
     @JsonProperty("tags")
@@ -71,8 +71,13 @@ public class Link {
             inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     private Set<Tag> assignedTags = new HashSet<>();
 
-    public Link(
-            Long linkId, String url, List<String> filters, LocalDateTime createdAt, Chat chat, Set<Tag> tagsByLinkId) {}
-
-    public Link(String url) {}
+    public Link(String url, Chat chat) {
+        this.url = url;
+        this.chat = chat;
+        this.createdAt = null;
+        this.filters = new ArrayList<>();
+        this.knownIssueIds = new ArrayList<>();
+        this.knownPrIds = new ArrayList<>();
+        this.assignedTags = new HashSet<>();
+    }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,5 +54,11 @@ public class Tag {
     @Override
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
+    }
+
+    public Tag(Long chatId, String name) {
+        this.chatId = chatId;
+        this.name = name;
+        this.linkSet = new HashSet<>();
     }
 }

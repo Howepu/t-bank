@@ -4,6 +4,8 @@ import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.models.Tag;
 import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -23,47 +25,71 @@ public class JdbcLinkRepository {
 
     private final JdbcClient jdbcClient;
 
-    public List<Link> findAllLinksByChatId(Long chatId) {
+    private Link mapLink(ResultSet rs) throws SQLException {
+        Link link = new Link();
+        link.id(rs.getLong("id"));
+        link.url(rs.getString("url"));
+        link.filters(
+            rs.getArray("filters") != null
+                ? Arrays.asList((String[]) rs.getArray("filters").getArray())
+                : new ArrayList<>());
+
+        // Assign creation date if needed
+        link.createdAt(null);
+        link.chat(new Chat(rs.getLong("chat_id")));
+
+        // Load known_issue_ids and known_pr_ids
+        Array issueIdsArray = rs.getArray("known_issue_ids");
+        link.knownIssueIds(issueIdsArray != null
+            ? Arrays.asList((Long[]) issueIdsArray.getArray())
+            : new ArrayList<>());
+
+        Array prIdsArray = rs.getArray("known_pr_ids");
+        link.knownPrIds(prIdsArray != null
+            ? Arrays.asList((Long[]) prIdsArray.getArray())
+            : new ArrayList<>());
+
+        return link;
+    }
+
+    public List<Link> findLinksByTag(String tagName, Long chatId) {
         String sql =
-                """
-        SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
-        FROM link l
-        WHERE l.chat_id = :chatId
-        """;
+            """
+    SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
+    FROM link l
+    JOIN link_tag lt ON l.id = lt.link_id
+    JOIN tag t ON lt.tag_id = t.id
+    WHERE t.name = ? AND l.chat_id = ?
+    """;
 
         List<Link> links = jdbcClient
-                .sql(sql)
-                .param("chatId", chatId)
-                .query((rs, rowNum) -> {
-                    Link link = new Link();
-                    link.id(rs.getLong("id"));
-                    link.url(rs.getString("url"));
-                    link.filters(
-                            rs.getArray("filters") != null
-                                    ? Arrays.asList(
-                                            (String[]) rs.getArray("filters").getArray())
-                                    : new ArrayList<>());
-                    link.createdAt(null);
-                    link.chat(new Chat(rs.getLong("chat_id")));
+            .sql(sql)
+            .param(1, tagName)
+            .param(2, chatId)
+            .query((rs, rowNum) -> mapLink(rs))
+            .list();
 
-                    // Загружаем known_issue_ids и known_pr_ids
-                    Array issueIdsArray = rs.getArray("known_issue_ids");
-                    if (issueIdsArray != null) {
-                        link.knownIssueIds(Arrays.asList((Long[]) issueIdsArray.getArray()));
-                    } else {
-                        link.knownIssueIds(new ArrayList<>());
-                    }
+        for (Link link : links) {
+            Set<Tag> tags = findTagsByLinkId(link.id());
+            link.assignedTags(tags);
+        }
 
-                    Array prIdsArray = rs.getArray("known_pr_ids");
-                    if (prIdsArray != null) {
-                        link.knownPrIds(Arrays.asList((Long[]) prIdsArray.getArray()));
-                    } else {
-                        link.knownPrIds(new ArrayList<>());
-                    }
+        return links;
+    }
 
-                    return link;
-                })
-                .list();
+    public List<Link> findAllLinksByChatId(Long chatId) {
+        String sql =
+            """
+    SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
+    FROM link l
+    WHERE l.chat_id = :chatId
+    """;
+
+        List<Link> links = jdbcClient
+            .sql(sql)
+            .param("chatId", chatId)
+            .query((rs, rowNum) -> mapLink(rs))
+            .list();
 
         for (Link link : links) {
             Set<Tag> tags = findTagsByLinkId(link.id());
@@ -118,8 +144,6 @@ public class JdbcLinkRepository {
             throw new IllegalStateException("Failed to insert link, no ID obtained.");
         }
         Long linkId = key.longValue();
-
-        System.out.println("SQL executed successfully. Inserted link ID: " + linkId);
 
         if (link.assignedTags() != null && !link.assignedTags().isEmpty()) {
             for (Tag tag : link.assignedTags()) {
@@ -201,24 +225,6 @@ public class JdbcLinkRepository {
                 .param("linkId", linkId)
                 .param("tagId", tagId)
                 .update();
-    }
-
-    public List<Link> findLinksByTag(String tagName, Long chatId) {
-        String sql =
-                """
-        SELECT l.url
-        FROM link l
-        JOIN link_tag lt ON l.id = lt.link_id
-        JOIN tag t ON lt.tag_id = t.id
-        WHERE t.name = ? AND l.chat_id = ?
-    """;
-
-        return jdbcClient
-                .sql(sql)
-                .param(1, tagName)
-                .param(2, chatId)
-                .query((rs, rowNum) -> new Link(rs.getString("url")))
-                .list();
     }
 
     // Удаление тега у ссылки

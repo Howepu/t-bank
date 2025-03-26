@@ -2,20 +2,19 @@ package backend.academy.scrapper.services;
 
 import backend.academy.scrapper.bot.BotHttpClient;
 import backend.academy.scrapper.dto.LinkUpdate;
-import backend.academy.scrapper.stackoverflow.StackOverflowClient;
-import backend.academy.scrapper.stackoverflow.StackOverflowQuestionAnswer;
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
+import backend.academy.scrapper.stackoverflow.StackOverflowClient;
+import backend.academy.scrapper.stackoverflow.StackOverflowQuestionAnswer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -27,10 +26,10 @@ public class StackOverflowCheckService {
     private final ChatService chatService;
 
     private static final String QUESTION_UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в вопросе на StackOverflow: **%s**%n"
-        + "📅 Последняя активность: %s%n" + "🔗 [Смотреть на StackOverflow](%s)";
+            + "📅 Последняя активность: %s%n" + "🔗 [Смотреть на StackOverflow](%s)";
 
     private static final String ANSWER_UPDATE_MESSAGE_TEMPLATE = "🔔 Новый ответ на вопрос **%s** на StackOverflow:%n"
-        + "👤 Автор: %s%n" + "📅 Время ответа: %s%n" + "🔗 [Смотреть ответ на StackOverflow](%s)";
+            + "👤 Автор: %s%n" + "📅 Время ответа: %s%n" + "🔗 [Смотреть ответ на StackOverflow](%s)";
 
     private static final int BATCH_SIZE = 250;
     private static final int NUM_THREADS = 4;
@@ -38,10 +37,10 @@ public class StackOverflowCheckService {
     private final ExecutorService executorService;
 
     public StackOverflowCheckService(
-        StackOverflowClient stackOverflowClient,
-        LinkService linkService,
-        BotHttpClient botHttpClient,
-        ChatService chatService) {
+            StackOverflowClient stackOverflowClient,
+            LinkService linkService,
+            BotHttpClient botHttpClient,
+            ChatService chatService) {
         this.stackOverflowClient = stackOverflowClient;
         this.linkService = linkService;
         this.botHttpClient = botHttpClient;
@@ -98,7 +97,7 @@ public class StackOverflowCheckService {
 
             // Обработка изменений
             if (stackOverflowQuestion.getLastActivityDateAsDateTime() != null
-                && !stackOverflowQuestion.getLastActivityDateAsDateTime().equals(link.createdAt())) {
+                    && !stackOverflowQuestion.getLastActivityDateAsDateTime().equals(link.createdAt())) {
                 linkService.updateLastUpdated(link.id(), stackOverflowQuestion.getLastActivityDateAsDateTime());
                 sendUpdate(link, stackOverflowQuestion);
             }
@@ -124,16 +123,14 @@ public class StackOverflowCheckService {
 
     private void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion) {
         String title = stackOverflowQuestion.title() != null ? stackOverflowQuestion.title() : "Без названия";
-        String lastActivity = stackOverflowQuestion.getLastActivityDateAsDateTime() != null ?
-            stackOverflowQuestion.getLastActivityDateAsDateTime().toString() : "Не указано время";
+        String lastActivity = stackOverflowQuestion.getLastActivityDateAsDateTime() != null
+                ? stackOverflowQuestion.getLastActivityDateAsDateTime().toString()
+                : "Не указано время";
 
-        String message = String.format(
-            QUESTION_UPDATE_MESSAGE_TEMPLATE,
-            title,
-            lastActivity,
-            link.url());
+        String message = String.format(QUESTION_UPDATE_MESSAGE_TEMPLATE, title, lastActivity, link.url());
 
-        LinkUpdate update = new LinkUpdate(link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
 
         log.info("Отправка уведомления: {}", message);
         botHttpClient.sendUpdate(update).subscribe();
@@ -142,23 +139,20 @@ public class StackOverflowCheckService {
     private void sendAnswerUpdate(Link link, StackOverflowQuestionAnswer answer) {
         String title = answer.title() != null ? answer.title() : "Без названия";
         String displayName = answer.owner().name();
-        String creationDate = answer.getCreationDate() != null ? answer.getCreationDate().toString() : "Не указано время";
+        String creationDate =
+                answer.getCreationDate() != null ? answer.getCreationDate().toString() : "Не указано время";
 
-        String message = String.format(
-            ANSWER_UPDATE_MESSAGE_TEMPLATE,
-            title,
-            displayName,
-            creationDate,
-            link.url());
+        String message = String.format(ANSWER_UPDATE_MESSAGE_TEMPLATE, title, displayName, creationDate, link.url());
 
-        LinkUpdate update = new LinkUpdate(link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
 
         log.info("Отправка обновления ответа: {}", message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
     boolean isStackOverflowQuestion(String url) {
-        log.info("Проверка URL: {}", url);  // Логируем URL перед проверкой
+        log.info("Проверка URL: {}", url); // Логируем URL перед проверкой
         return url.matches("https://stackoverflow\\.com/questions/\\d+(/.*)?");
     }
 

@@ -4,7 +4,6 @@ import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.repositories.jpa.JpaChatRepository;
 import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import backend.academy.scrapper.services.ChatService;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,11 +33,6 @@ public class JpaChatService implements ChatService {
         if (chatId == null) {
             throw new IllegalArgumentException("Chat ID должен быть предоставлен и не может быть пустым");
         }
-
-        Chat chat = chatRepository.findById(chatId).orElseThrow(() -> new NoSuchElementException("Chat ID не найден"));
-
-        chatRepository.deleteByChatId(chatId);
-//        linkRepository.findAndDeleteByChat(chat);
     }
 
     @Override

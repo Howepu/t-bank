@@ -15,10 +15,6 @@ public class BotHttpClient {
     }
 
     public Mono<Void> sendUpdate(LinkUpdate linkUpdate) {
-        return webClient.post()
-            .uri("/updates")
-            .bodyValue(linkUpdate)
-            .retrieve()
-            .bodyToMono(Void.class);
+        return webClient.post().uri("/updates").bodyValue(linkUpdate).retrieve().bodyToMono(Void.class);
     }
 }

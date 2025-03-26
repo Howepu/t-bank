@@ -1,5 +1,5 @@
 app:
-  database-access-type: jpa
+  database-access-type: jdbc
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:
     key: ${SO_TOKEN_KEY}
@@ -9,10 +9,11 @@ spring:
   application:
     name: Scrapper
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     open-in-view: false
 
   datasource:
