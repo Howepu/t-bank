@@ -6,12 +6,10 @@ import backend.academy.bot.dto.ListLinksResponse;
 import backend.academy.bot.dto.TagDto;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +40,6 @@ public class TrackDialog {
         String url;
         List<String> tags;
         List<String> filters;
-
     }
 
     // Основной метод для обработки всех сообщений
@@ -69,34 +66,41 @@ public class TrackDialog {
                 if (!messageText.isEmpty()) {
                     if (!isValidUrl(messageText)) {
                         return new SendMessage(
-                            chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
-                            .replyToMessageId(replyTo);
+                                        chatId, "Неверный формат ссылки. Поддерживаются только GitHub и StackOverflow.")
+                                .replyToMessageId(replyTo);
                     }
 
                     try {
-                        ListLinksResponse linksResponse = scrapperHttpClient.getLinks(chatId).block();
+                        ListLinksResponse linksResponse =
+                                scrapperHttpClient.getLinks(chatId).block();
                         String finalMessageText = messageText;
                         if (linksResponse != null
-                            && linksResponse.links().stream()
-                            .anyMatch(link -> link.url().equals(finalMessageText))) {
+                                && linksResponse.links().stream()
+                                        .anyMatch(link -> link.url().equals(finalMessageText))) {
                             return new SendMessage(chatId, "Эта ссылка уже отслеживается.").replyToMessageId(replyTo);
                         }
                     } catch (HttpStatusCodeException e) {
-                        log.error("Ошибка HTTP при получении списка ссылок для чата {}: HTTP статус {}. Сообщение: {}",
-                            chatId, e.getStatusCode(), e.getResponseBodyAsString(), e);
-                        return new SendMessage(chatId, "Ошибка на сервере при получении списка ссылок. Пожалуйста, попробуйте позже.")
-                            .replyToMessageId(replyTo);
+                        log.error(
+                                "Ошибка HTTP при получении списка ссылок для чата {}: HTTP статус {}. Сообщение: {}",
+                                chatId,
+                                e.getStatusCode(),
+                                e.getResponseBodyAsString(),
+                                e);
+                        return new SendMessage(
+                                        chatId,
+                                        "Ошибка на сервере при получении списка ссылок. Пожалуйста, попробуйте позже.")
+                                .replyToMessageId(replyTo);
                     } catch (Exception e) {
                         log.error("Неизвестная ошибка при получении списка ссылок для чата {}: ", chatId, e);
-                        return new SendMessage(chatId, "Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже.")
-                            .replyToMessageId(replyTo);
+                        return new SendMessage(
+                                        chatId, "Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже.")
+                                .replyToMessageId(replyTo);
                     }
-
 
                     data.url = messageText;
                     userStates.put(chatId, State.AWAITING_TAGS);
                     return new SendMessage(chatId, "Введите тэги через запятую (опционально). Введите - для пропуска")
-                        .replyToMessageId(replyTo);
+                            .replyToMessageId(replyTo);
                 }
 
                 return new SendMessage(chatId, "Введите ссылку для отслеживания").replyToMessageId(replyTo);
@@ -109,7 +113,7 @@ public class TrackDialog {
 
                 userStates.put(chatId, State.AWAITING_FILTERS);
                 return new SendMessage(chatId, "Настройте фильтры через запятую (опционально). Введите - для пропуска")
-                    .replyToMessageId(replyTo);
+                        .replyToMessageId(replyTo);
 
             case AWAITING_FILTERS:
                 if (!messageText.isEmpty()) {
@@ -119,32 +123,34 @@ public class TrackDialog {
                 userStates.put(chatId, State.COMPLETE);
 
                 // Преобразуем теги в TagDto
-                List<TagDto> tagObjects = data.tags.stream()
-                    .map(TagDto::new)
-                    .collect(Collectors.toList());
+                List<TagDto> tagObjects = data.tags.stream().map(TagDto::new).collect(Collectors.toList());
 
                 AddLinkRequest addLinkRequest = new AddLinkRequest(chatId, data.url, tagObjects, data.filters);
 
                 try {
-                    log.info("Добавление ссылки {} с тегами {} и фильтрами {} для чата {}",
-                        data.url, data.tags, data.filters, chatId);
+                    log.info(
+                            "Добавление ссылки {} с тегами {} и фильтрами {} для чата {}",
+                            data.url,
+                            data.tags,
+                            data.filters,
+                            chatId);
                     scrapperHttpClient.addLink(chatId, addLinkRequest).subscribe();
                 } catch (Exception e) {
                     log.error("Ошибка при добавлении ссылки {} для чата {}: ", data.url, chatId, e);
                     return new SendMessage(
-                        chatId, "Произошла ошибка при добавлении ссылки. Пожалуйста, попробуйте позже.")
-                        .replyToMessageId(replyTo);
+                                    chatId, "Произошла ошибка при добавлении ссылки. Пожалуйста, попробуйте позже.")
+                            .replyToMessageId(replyTo);
                 }
 
                 userData.remove(chatId);
                 userStates.remove(chatId);
 
                 return new SendMessage(
-                    chatId,
-                    "Ссылка добавлена: " + data.url + "\nТеги: "
-                        + String.join(", ", data.tags) + "\nФильтры: "
-                        + String.join(", ", data.filters))
-                    .replyToMessageId(replyTo);
+                                chatId,
+                                "Ссылка добавлена: " + data.url + "\nТеги: "
+                                        + String.join(", ", data.tags) + "\nФильтры: "
+                                        + String.join(", ", data.filters))
+                        .replyToMessageId(replyTo);
 
             default:
                 userStates.put(chatId, State.AWAITING_URL);
