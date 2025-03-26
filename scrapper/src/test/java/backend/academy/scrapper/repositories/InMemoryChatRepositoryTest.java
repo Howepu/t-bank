@@ -1,11 +1,11 @@
-//package backend.academy.scrapper.repositories;
+// package backend.academy.scrapper.repositories;
 //
-//import static org.junit.jupiter.api.Assertions.*;
+// import static org.junit.jupiter.api.Assertions.*;
 //
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.Test;
 //
-//public class InMemoryChatRepositoryTest {
+// public class InMemoryChatRepositoryTest {
 //
 //    private InMemoryChatRepository chatRepository;
 //
@@ -50,4 +50,4 @@
 //
 //        assertTrue(chatRepository.isChatRegistered(chatId));
 //    }
-//}
+// }

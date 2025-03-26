@@ -1,86 +1,80 @@
 package backend.academy.scrapper.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import backend.academy.scrapper.models.Chat;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@Testcontainers
 class ChatServiceTest {
 
-    @Mock
+    @Container
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:17-alpine")
+            .withDatabaseName("scrapper")
+            .withUsername("postgres")
+            .withPassword("postgres");
+
+    @Autowired
     private ChatService chatService;
 
-    @Test
-    void registerChat_ShouldCallServiceMethod() {
-        // Arrange
-        Long chatId = 123L;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-        // Act
-        chatService.registerChat(chatId);
-
-        // Assert
-        verify(chatService, times(1)).registerChat(chatId);
+    @BeforeEach
+    void cleanDatabase() {
+        jdbcTemplate.execute("DELETE FROM link_tag");
+        jdbcTemplate.execute("DELETE FROM link");
+        jdbcTemplate.execute("DELETE FROM chat");
+        jdbcTemplate.execute("DELETE FROM tag");
     }
 
     @Test
-    void isChatRegistered_ShouldReturnTrue_WhenChatExists() {
-        // Arrange
+    void registerChat_ShouldSaveChat() {
         Long chatId = 123L;
-        when(chatService.isChatRegistered(chatId)).thenReturn(true);
 
-        // Act
-        boolean result = chatService.isChatRegistered(chatId);
+        chatService.registerChat(chatId);
+        boolean exists = chatService.isChatRegistered(chatId);
 
-        // Assert
-        assertTrue(result);
-        verify(chatService, times(1)).isChatRegistered(chatId);
+        assertThat(exists).isTrue();
     }
 
     @Test
     void getChatById_ShouldReturnChat_WhenExists() {
-        // Arrange
-        Long chatId = 123L;
-        Chat expectedChat = new Chat(chatId);
-        when(chatService.getChatById(chatId)).thenReturn(expectedChat);
+        Chat chat = new Chat(123L);
+        chatService.registerChat(chat.chatId());
 
-        // Act
-        Chat result = chatService.getChatById(chatId);
+        Chat result = chatService.getChatById(123L);
 
-        // Assert
-        assertEquals(expectedChat, result);
-        verify(chatService, times(1)).getChatById(chatId);
+        assertThat(result).isNotNull();
+        assertThat(result.chatId()).isEqualTo(123L);
     }
 
     @Test
-    void removeChat_ShouldCallServiceMethod() {
-        // Arrange
-        Long chatId = 123L;
+    void removeChat_ShouldDeleteChat() {
+        // Создаём чат и добавляем его в базу
+        Chat chat = new Chat(123L);
+        chatService.registerChat(chat.chatId());
 
-        // Act
-        chatService.removeChat(chatId);
+        // Проверяем, что чат был добавлен
+        Chat insertedChat = chatService.getChatById(chat.chatId());
+        assertThat(insertedChat).isNotNull(); // Чат должен быть найден
 
-        // Assert
-        verify(chatService, times(1)).removeChat(chatId);
-    }
+        // Удаляем чат
+        chatService.removeChat(123L);
 
-    @Test
-    void getAllRegisteredChatIds_ShouldReturnSetOfChats() {
-        // Arrange
-        Set<Chat> expectedChats = Set.of(new Chat(123L), new Chat(456L));
-        when(chatService.getAllRegisteredChatIds()).thenReturn(expectedChats);
-
-        // Act
-        Set<Chat> result = chatService.getAllRegisteredChatIds();
-
-        // Assert
-        assertEquals(expectedChats, result);
-        verify(chatService, times(1)).getAllRegisteredChatIds();
+        // Проверяем, что чат был удалён
+        Chat deletedChat = chatService.getChatById(123L);
+        assertThat(deletedChat).isNull(); // После удаления чат должен быть равен null
     }
 }

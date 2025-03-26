@@ -1,0 +1,5 @@
+spring:
+  liquibase:
+    enabled: false
+    change-log: classpath:migrations/master.xml
+    drop-first: true
