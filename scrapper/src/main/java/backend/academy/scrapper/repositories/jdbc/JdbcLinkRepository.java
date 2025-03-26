@@ -30,9 +30,9 @@ public class JdbcLinkRepository {
         link.id(rs.getLong("id"));
         link.url(rs.getString("url"));
         link.filters(
-            rs.getArray("filters") != null
-                ? Arrays.asList((String[]) rs.getArray("filters").getArray())
-                : new ArrayList<>());
+                rs.getArray("filters") != null
+                        ? Arrays.asList((String[]) rs.getArray("filters").getArray())
+                        : new ArrayList<>());
 
         // Assign creation date if needed
         link.createdAt(null);
@@ -40,21 +40,18 @@ public class JdbcLinkRepository {
 
         // Load known_issue_ids and known_pr_ids
         Array issueIdsArray = rs.getArray("known_issue_ids");
-        link.knownIssueIds(issueIdsArray != null
-            ? Arrays.asList((Long[]) issueIdsArray.getArray())
-            : new ArrayList<>());
+        link.knownIssueIds(
+                issueIdsArray != null ? Arrays.asList((Long[]) issueIdsArray.getArray()) : new ArrayList<>());
 
         Array prIdsArray = rs.getArray("known_pr_ids");
-        link.knownPrIds(prIdsArray != null
-            ? Arrays.asList((Long[]) prIdsArray.getArray())
-            : new ArrayList<>());
+        link.knownPrIds(prIdsArray != null ? Arrays.asList((Long[]) prIdsArray.getArray()) : new ArrayList<>());
 
         return link;
     }
 
     public List<Link> findLinksByTag(String tagName, Long chatId) {
         String sql =
-            """
+                """
     SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
     FROM link l
     JOIN link_tag lt ON l.id = lt.link_id
@@ -63,11 +60,11 @@ public class JdbcLinkRepository {
     """;
 
         List<Link> links = jdbcClient
-            .sql(sql)
-            .param(1, tagName)
-            .param(2, chatId)
-            .query((rs, rowNum) -> mapLink(rs))
-            .list();
+                .sql(sql)
+                .param(1, tagName)
+                .param(2, chatId)
+                .query((rs, rowNum) -> mapLink(rs))
+                .list();
 
         for (Link link : links) {
             Set<Tag> tags = findTagsByLinkId(link.id());
@@ -79,17 +76,17 @@ public class JdbcLinkRepository {
 
     public List<Link> findAllLinksByChatId(Long chatId) {
         String sql =
-            """
+                """
     SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
     FROM link l
     WHERE l.chat_id = :chatId
     """;
 
         List<Link> links = jdbcClient
-            .sql(sql)
-            .param("chatId", chatId)
-            .query((rs, rowNum) -> mapLink(rs))
-            .list();
+                .sql(sql)
+                .param("chatId", chatId)
+                .query((rs, rowNum) -> mapLink(rs))
+                .list();
 
         for (Link link : links) {
             Set<Tag> tags = findTagsByLinkId(link.id());
