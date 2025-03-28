@@ -28,14 +28,19 @@ public class UntrackCommand implements CommandHandler {
         Long chatId = update.message().chat().id();
         String messageText = update.message().text().trim();
 
-        // Если пользователь не передал ссылку в сообщении
         if (messageText.equals("/untrack")) {
             return new SendMessage(chatId, "Введите ссылку, которую хотите удалить.")
                     .replyToMessageId(update.message().messageId());
         }
 
-        // Если пользователь передал ссылку
-        String urlToRemove = messageText.replace("/untrack", "").trim();
+        String[] parts = messageText.split("\\s+", 2); // Разбиваем максимум на 2 части
+
+        if (parts.length < 2 || parts[1].trim().isEmpty()) {
+            return new SendMessage(chatId, "Пожалуйста, укажите ссылку после команды /untrack")
+                    .replyToMessageId(update.message().messageId());
+        }
+
+        String urlToRemove = parts[1].trim();
 
         // Создаем запрос для удаления ссылки
         RemoveLinkRequest removeLinkRequest = new RemoveLinkRequest(urlToRemove);
