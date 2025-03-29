@@ -49,14 +49,14 @@ public class LinkCheckService {
 
     @Scheduled(fixedRate = 5000)
     public void checkLinks() {
-        log.info("Starting link check...");
+        log.info("Начинаем проверку ссылок...");
 
         Set<Chat> chatIds = chatService.getAllRegisteredChatIds();
-        log.debug("Found {} registered chat(s) for link checking.", chatIds.size());
+        log.debug("Найдено {} зарегистрированных чатов для проверки ссылок.", chatIds.size());
 
         for (Chat chat : chatIds) {
             List<Link> links = linkService.getAllLinks(chat.chatId());
-            log.debug("Found {} links for chat {}.", links.size(), chat.chatId());
+            log.debug("Найдено {} ссылок для чата {}.", links.size(), chat.chatId());
 
             // Разделяем ссылки на батчи
             int totalLinks = links.size();
@@ -65,7 +65,7 @@ public class LinkCheckService {
                 List<Link> batch = links.subList(i, end);
 
                 // Отправляем батч в поток
-                log.debug("Processing batch of {} links for chat {}.", batch.size(), chat.chatId());
+                log.debug("Обрабатываем батч из {} ссылок для чата {}.", batch.size(), chat.chatId());
                 executorService.submit(() -> processBatch(batch));
             }
         }
@@ -76,10 +76,10 @@ public class LinkCheckService {
     private void processBatch(List<Link> batch) {
         for (Link link : batch) {
             if (isGitHubRepo(link.url())) {
-                log.info("Checking GitHub repository URL: {}", link.url());
+                log.info("Проверяем ссылку на репозиторий GitHub: {}", link.url());
                 checkGitHubRepo(link);
             } else {
-                log.warn("Skipping non-GitHub link: {}", link.url());
+                log.warn("Пропускаем ссылку, так как она не относится к GitHub: {}", link.url());
             }
         }
     }
@@ -89,7 +89,7 @@ public class LinkCheckService {
         String owner = parts[3];
         String repo = parts[4];
 
-        log.info("Checking GitHub repository: {}/{}", owner, repo);
+        log.info("Проверяем репозиторий GitHub: {}/{}", owner, repo);
 
         gitHubClient
                 .getRepository(owner, repo)
@@ -97,24 +97,25 @@ public class LinkCheckService {
                 .then(gitHubClient.getIssues(owner, repo).doOnNext(issues -> processGitHubIssues(link, issues)))
                 .then(gitHubClient.getPullRequests(owner, repo).doOnNext(prs -> processGitHubPullRequests(link, prs)))
                 .subscribe(
-                        result -> log.debug("Processed GitHub repo: {}", link.url()),
-                        error -> log.error("Error checking GitHub repository {}: {}", link.url(), error.getMessage()));
+                        result -> log.debug("Репозиторий проверен: {}", link.url()),
+                        error -> log.error(
+                                "Ошибка при проверке репозитория GitHub {}: {}", link.url(), error.getMessage()));
     }
 
     private void processGitHubRepository(GitHubRepository gitHubRepository, Link link) {
         if (link.createdAt() == null) {
-            log.debug("First time checking repository, updating creation date.");
+            log.debug("Первый раз проверяем репозиторий, обновляем дату создания.");
             linkService.updateLastUpdated(link.id(), gitHubRepository.getPushedAtAsDateTime());
             return;
         }
 
         if (gitHubRepository.getPushedAtAsDateTime() != null
                 && !gitHubRepository.getPushedAtAsDateTime().equals(link.createdAt())) {
-            log.info("Repository {} updated. Notifying subscribers.", link.url());
+            log.info("Репозиторий {} обновлён. Уведомляем подписчиков.", link.url());
             linkService.updateLastUpdated(link.id(), gitHubRepository.getPushedAtAsDateTime());
             sendUpdate(link, gitHubRepository);
         } else {
-            log.debug("No update for repository {} since last check.", link.url());
+            log.debug("Обновлений в репозитории {} нет с момента последней проверки.", link.url());
         }
     }
 
@@ -125,7 +126,7 @@ public class LinkCheckService {
 
             // Проверяем, есть ли этот issue в известных
             if (link.knownIssueIds() == null || !link.knownIssueIds().contains(issue.id())) {
-                log.info("New issue detected in repository {}: Issue ID {}", link.url(), issue.id());
+                log.info("Обнаружена новая issue в репозитории {}: Issue ID {}", link.url(), issue.id());
                 sendIssueOrPRUpdate(link, issue, "issue");
             }
         }
@@ -141,7 +142,7 @@ public class LinkCheckService {
 
             // Проверяем, есть ли этот PR в известных
             if (link.knownPrIds() == null || !link.knownPrIds().contains(pr.id())) {
-                log.info("New pull request detected in repository {}: PR ID {}", link.url(), pr.id());
+                log.info("Обнаружен новый pull request в репозитории {}: PR ID {}", link.url(), pr.id());
                 sendIssueOrPRUpdate(link, pr, "pull request");
             }
         }
@@ -152,7 +153,7 @@ public class LinkCheckService {
 
     private void sendUpdate(Link link, GitHubRepository gitHubRepository) {
         if (link.chat() == null) {
-            log.warn("Chat is null for link: {}", link.url());
+            log.warn("Чат равен null для ссылки: {}", link.url());
             return;
         }
 
@@ -161,13 +162,13 @@ public class LinkCheckService {
 
         LinkUpdate update = new LinkUpdate(
                 link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-        log.info("Sending repository update to chat {}: {}", link.chat().chatId(), message);
+        log.info("Отправляем обновление о репозитории в чат {}: {}", link.chat().chatId(), message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
     private void sendIssueOrPRUpdate(Link link, GitHubIssuePullRequest gitHubIssuePullRequest, String type) {
         if (link.chat() == null) {
-            log.warn("Chat is null for link: {}", link.url());
+            log.warn("Чат равен null для ссылки: {}", link.url());
             return;
         }
 
@@ -186,7 +187,7 @@ public class LinkCheckService {
 
         LinkUpdate update = new LinkUpdate(
                 link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-        log.info("Sending {} update to chat {}: {}", type, link.chat().chatId(), message);
+        log.info("Отправляем обновление о репозитории в чат {}: {}", link.chat().chatId(), message);
         botHttpClient.sendUpdate(update).subscribe();
     }
 
