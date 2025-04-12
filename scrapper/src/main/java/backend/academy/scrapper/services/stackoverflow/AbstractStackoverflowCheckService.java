@@ -1,9 +1,10 @@
-package backend.academy.scrapper.services;
+package backend.academy.scrapper.services.stackoverflow;
 
 import backend.academy.scrapper.bot.BotHttpClient;
-import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
+import backend.academy.scrapper.services.ChatService;
+import backend.academy.scrapper.services.LinkService;
 import backend.academy.scrapper.stackoverflow.StackOverflowClient;
 import backend.academy.scrapper.stackoverflow.StackOverflowQuestionAnswer;
 import java.util.ArrayList;
@@ -18,32 +19,23 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class StackOverflowCheckService {
+public abstract class AbstractStackoverflowCheckService {
 
     private final StackOverflowClient stackOverflowClient;
     private final LinkService linkService;
-    private final BotHttpClient botHttpClient;
     private final ChatService chatService;
-
-    private static final String QUESTION_UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в вопросе на StackOverflow: **%s**%n"
-            + "📅 Последняя активность: %s%n" + "🔗 [Смотреть на StackOverflow](%s)";
-
-    private static final String ANSWER_UPDATE_MESSAGE_TEMPLATE = "🔔 Новый ответ на вопрос **%s** на StackOverflow:%n"
-            + "👤 Автор: %s%n" + "📅 Время ответа: %s%n" + "🔗 [Смотреть ответ на StackOverflow](%s)";
 
     private static final int BATCH_SIZE = 250;
     private static final int NUM_THREADS = 4;
 
     private final ExecutorService executorService;
 
-    public StackOverflowCheckService(
+    public AbstractStackoverflowCheckService(
             StackOverflowClient stackOverflowClient,
             LinkService linkService,
-            BotHttpClient botHttpClient,
             ChatService chatService) {
         this.stackOverflowClient = stackOverflowClient;
         this.linkService = linkService;
-        this.botHttpClient = botHttpClient;
         this.chatService = chatService;
         this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
     }
@@ -121,45 +113,12 @@ public class StackOverflowCheckService {
         });
     }
 
-    private void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion) {
-        String title = stackOverflowQuestion.title() != null ? stackOverflowQuestion.title() : "Без названия";
-        String lastActivity = stackOverflowQuestion.getLastActivityDateAsDateTime() != null
-                ? stackOverflowQuestion.getLastActivityDateAsDateTime().toString()
-                : "Не указано время";
-
-        String message = String.format(QUESTION_UPDATE_MESSAGE_TEMPLATE, title, lastActivity, link.url());
-
-        LinkUpdate update = new LinkUpdate(
-                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-
-        log.info("Отправка уведомления: {}", message);
-        botHttpClient.sendUpdate(update).subscribe();
-    }
-
-    private void sendAnswerUpdate(Link link, StackOverflowQuestionAnswer answer) {
-        String title = answer.title() != null ? answer.title() : "Без названия";
-        String displayName = answer.owner().name();
-        String creationDate =
-                answer.getCreationDate() != null ? answer.getCreationDate().toString() : "Не указано время";
-
-        String message = String.format(ANSWER_UPDATE_MESSAGE_TEMPLATE, title, displayName, creationDate, link.url());
-
-        LinkUpdate update = new LinkUpdate(
-                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
-
-        log.info("Отправка обновления ответа: {}", message);
-        botHttpClient.sendUpdate(update).subscribe();
-    }
-
     boolean isStackOverflowQuestion(String url) {
         log.info("Проверка URL: {}", url); // Логируем URL перед проверкой
         return url.matches("https://stackoverflow\\.com/questions/\\d+(/.*)?");
     }
 
-    // При завершении приложения закрываем пул потоков
-    public void shutdown() {
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
-    }
+    protected abstract void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion);
+
+    protected abstract void sendAnswerUpdate(Link link, StackOverflowQuestionAnswer answer);
 }
