@@ -1,13 +1,16 @@
 app:
+  message-transport: http
   database-access-type: jdbc
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
+  kafka-topic-updates: updates
 
 spring:
   application:
     name: Scrapper
+
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -28,7 +31,11 @@ spring:
       connection-timeout: 30000
       max-lifetime: 1800000
 
-
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 
 server:
