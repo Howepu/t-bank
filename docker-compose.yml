@@ -58,10 +58,21 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
 
-
-
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --appendonly yes
+    restart: unless-stopped
 
 
 networks:
   backend:
     driver: bridge
+
+
+volumes:
+  redis_data:
+    name: bot_redis_data

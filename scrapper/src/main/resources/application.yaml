@@ -1,5 +1,5 @@
 app:
-  message-transport: http
+  message-transport: kafka
   database-access-type: jdbc
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:
@@ -36,6 +36,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 
 server:

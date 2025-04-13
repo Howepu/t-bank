@@ -14,6 +14,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,9 +29,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class Link {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
+public class Link implements Serializable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,12 +62,12 @@ public class Link {
 
     @JsonProperty("tags")
     @ManyToMany(
-            fetch = FetchType.EAGER,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+        fetch = FetchType.EAGER,
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "link_tag",
-            joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
+        name = "link_tag",
+        joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     private Set<Tag> assignedTags = new HashSet<>();
 
     public Link(String url, Chat chat) {
