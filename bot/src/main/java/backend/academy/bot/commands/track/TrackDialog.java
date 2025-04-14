@@ -2,6 +2,7 @@ package backend.academy.bot.commands.track;
 
 import backend.academy.bot.clients.ScrapperHttpClient;
 import backend.academy.bot.dto.AddLinkRequest;
+import backend.academy.bot.dto.FilterDto;
 import backend.academy.bot.dto.ListLinksResponse;
 import backend.academy.bot.dto.TagDto;
 import com.pengrad.telegrambot.model.Update;
@@ -124,8 +125,9 @@ public class TrackDialog {
 
                 // Преобразуем теги в TagDto
                 List<TagDto> tagObjects = data.tags.stream().map(TagDto::new).collect(Collectors.toList());
+                List<FilterDto> filterObjects = data.filters.stream().map(FilterDto::new).collect(Collectors.toList());
 
-                AddLinkRequest addLinkRequest = new AddLinkRequest(chatId, data.url, tagObjects, data.filters);
+                AddLinkRequest addLinkRequest = new AddLinkRequest(chatId, data.url, tagObjects, filterObjects);
 
                 try {
                     log.info(

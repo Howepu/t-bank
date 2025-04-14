@@ -4,6 +4,7 @@ import backend.academy.bot.commands.CommandHandler;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,9 +12,13 @@ import org.springframework.stereotype.Component;
 public class TrackCommand implements CommandHandler {
 
     private final TrackDialog trackDialog;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public TrackCommand(TrackDialog trackDialog) {
+    private static final String CACHE_PREFIX = "bot:list:";
+
+    public TrackCommand(TrackDialog trackDialog, RedisTemplate<String, String> redisTemplate) {
         this.trackDialog = trackDialog;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -33,12 +38,13 @@ public class TrackCommand implements CommandHandler {
 
         log.info("Обработка команды /track: chatId={}, сообщение={}", chatId, messageText);
 
+        redisTemplate.delete(CACHE_PREFIX + chatId);
+
         if (messageText.startsWith("/track")) {
             return trackDialog.handle(update);
         }
 
-        log.warn("Команда /track введена без ссылки: chatId={}", chatId);
         return new SendMessage(chatId, "Команда /track ожидает URL.")
-                .replyToMessageId(update.message().messageId());
+            .replyToMessageId(update.message().messageId());
     }
 }

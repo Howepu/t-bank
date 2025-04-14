@@ -22,5 +22,5 @@ public class LinkResponse {
     private Set<TagDto> tags;
 
     @JsonProperty("filters")
-    private List<String> filters;
+    private Set<FilterDto> filters;
 }
