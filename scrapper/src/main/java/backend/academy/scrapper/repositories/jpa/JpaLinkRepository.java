@@ -1,11 +1,13 @@
 package backend.academy.scrapper.repositories.jpa;
 
 import backend.academy.scrapper.models.Chat;
+import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Link;
 import io.lettuce.core.dynamic.annotation.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,4 +66,6 @@ public interface JpaLinkRepository extends JpaRepository<Link, Long> {
     @Modifying
     @Query(value = "UPDATE link SET known_pr_ids = :prIds WHERE id = :linkId", nativeQuery = true)
     void updateKnownPrIds(@Param("linkId") Long linkId, @Param("prIds") Long[] prIds); // Используем массив вместо List
+
+    List<Filter> findAssignedFiltersById(Long linkId);
 }

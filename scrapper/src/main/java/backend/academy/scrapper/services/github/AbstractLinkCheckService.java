@@ -10,6 +10,7 @@ import backend.academy.scrapper.services.LinkService;
 import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -115,8 +116,27 @@ public abstract class AbstractLinkCheckService {
 
             // Проверяем, есть ли этот issue в известных
             if (link.knownIssueIds() == null || !link.knownIssueIds().contains(issue.id())) {
-                log.info("Обнаружена новая issue в репозитории {}: Issue ID {}", link.url(), issue.id());
-                sendIssueOrPRUpdate(link, issue, "issue");
+
+                boolean skip = false;
+
+                log.info("Фильтры: {}",  linkService.getFilterNamesByLink(link.id()));
+                for (String filter : linkService.getFilterNamesByLink(link.id())) {
+                    log.info("Начинаем поиск фильтров {}", filter);
+                    if (isUserFilter(filter)) {
+                        String[] parts = filter.split("=");
+                        String userName = parts[1];
+                        log.info("Имя фильтра: {}", userName);
+                        if (userName.equals(issue.gitHubUser().login())) {
+                            skip = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!skip) {
+                    log.info("Обнаружена новая issue в репозитории {}: Issue ID {}", link.url(), issue.id());
+                    sendIssueOrPRUpdate(link, issue, "issue");
+                }
             }
         }
 
@@ -131,8 +151,25 @@ public abstract class AbstractLinkCheckService {
 
             // Проверяем, есть ли этот PR в известных
             if (link.knownPrIds() == null || !link.knownPrIds().contains(pr.id())) {
-                log.info("Обнаружен новый pull request в репозитории {}: PR ID {}", link.url(), pr.id());
-                sendIssueOrPRUpdate(link, pr, "pull request");
+
+                boolean skip = false;
+
+                for (String filter : linkService.getFilterNamesByLink(link.id())) {
+                    if (isUserFilter(filter)) {
+                        String[] parts = filter.split("=");
+                        String userName = parts[1];
+                        if (Objects.equals(userName, pr.gitHubUser().login())) {
+                            log.info("{} в блэк-листе", userName);
+                            skip = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!skip) {
+                    log.info("Обнаружен новый pull request в репозитории {}: PR ID {}", link.url(), pr.id());
+                    sendIssueOrPRUpdate(link, pr, "pull request");
+                }
             }
         }
 
@@ -146,6 +183,10 @@ public abstract class AbstractLinkCheckService {
 
     private boolean isGitHubRepo(String url) {
         return url != null && url.matches("https://github\\.com/[^/]+/[^/]+");
+    }
+
+    private boolean isUserFilter(String str) {
+        return str != null && str.matches("user=[a-zA-Z0-9_.]+$");
     }
 
     @PreDestroy

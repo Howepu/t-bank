@@ -40,10 +40,6 @@ public class Link implements Serializable{
     @Column(name = "url")
     private String url;
 
-    @JsonProperty("filters")
-    @Column(name = "filters", columnDefinition = "TEXT[]")
-    private List<String> filters = new ArrayList<>();
-
     @JsonProperty("createdAt")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -70,11 +66,20 @@ public class Link implements Serializable{
         inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     private Set<Tag> assignedTags = new HashSet<>();
 
+    @JsonProperty("filters")
+    @ManyToMany(
+        fetch = FetchType.EAGER,
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "link_filter",
+        joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "filter_id", referencedColumnName = "id"))
+    private Set<Filter> assignedFilters = new HashSet<>();
+
     public Link(String url, Chat chat) {
         this.url = url;
         this.chat = chat;
         this.createdAt = null;
-        this.filters = new ArrayList<>();
         this.knownIssueIds = new ArrayList<>();
         this.knownPrIds = new ArrayList<>();
         this.assignedTags = new HashSet<>();

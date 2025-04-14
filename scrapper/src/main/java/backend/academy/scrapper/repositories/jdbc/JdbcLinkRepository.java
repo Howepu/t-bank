@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repositories.jdbc;
 
 import backend.academy.scrapper.models.Chat;
+import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.models.Tag;
 import java.sql.Array;
@@ -29,16 +30,8 @@ public class JdbcLinkRepository {
         Link link = new Link();
         link.id(rs.getLong("id"));
         link.url(rs.getString("url"));
-        link.filters(
-                rs.getArray("filters") != null
-                        ? Arrays.asList((String[]) rs.getArray("filters").getArray())
-                        : new ArrayList<>());
-
-        // Assign creation date if needed
         link.createdAt(null);
         link.chat(new Chat(rs.getLong("chat_id")));
-
-        // Load known_issue_ids and known_pr_ids
         Array issueIdsArray = rs.getArray("known_issue_ids");
         link.knownIssueIds(
                 issueIdsArray != null ? Arrays.asList((Long[]) issueIdsArray.getArray()) : new ArrayList<>());
@@ -52,7 +45,7 @@ public class JdbcLinkRepository {
     public List<Link> findLinksByTag(String tagName, Long chatId) {
         String sql =
                 """
-    SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
+    SELECT l.id, l.url, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
     FROM link l
     JOIN link_tag lt ON l.id = lt.link_id
     JOIN tag t ON lt.tag_id = t.id
@@ -77,7 +70,7 @@ public class JdbcLinkRepository {
     public List<Link> findAllLinksByChatId(Long chatId) {
         String sql =
                 """
-    SELECT l.id, l.url, l.filters, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
+    SELECT l.id, l.url, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
     FROM link l
     WHERE l.chat_id = :chatId
     """;
@@ -120,7 +113,7 @@ public class JdbcLinkRepository {
 
     public Link addLink(Link link, Long chatId) {
 
-        String sql = "INSERT INTO link (url, chat_id, created_at, filters) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO link (url, chat_id, created_at) VALUES (?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -129,11 +122,6 @@ public class JdbcLinkRepository {
                 .param(1, link.url())
                 .param(2, chatId)
                 .param(3, link.createdAt())
-                .param(
-                        4,
-                        link.filters() != null && !link.filters().isEmpty()
-                                ? link.filters().toArray(new String[0])
-                                : null)
                 .update(keyHolder, new String[] {"id"});
 
         Number key = keyHolder.getKey();
@@ -158,6 +146,22 @@ public class JdbcLinkRepository {
             }
         }
 
+        if (link.assignedFilters() != null && !link.assignedFilters().isEmpty()) {
+            for (Filter filter : link.assignedFilters()) {
+
+                filter.chatId(chatId);
+
+                Long filterId = getFilterIdByNameAndChatId(filter.name(), chatId);
+
+                String insertLinkTagSql = "INSERT INTO link_filter (link_id, filter_id) VALUES (?, ?)";
+                jdbcClient
+                    .sql(insertLinkTagSql)
+                    .param(1, linkId)
+                    .param(2, filterId)
+                    .update();
+            }
+        }
+
         return link;
     }
 
@@ -178,6 +182,25 @@ public class JdbcLinkRepository {
                             .update(keyHolder, new String[] {"id"});
                     return keyHolder.getKey().longValue();
                 });
+    }
+
+    private Long getFilterIdByNameAndChatId(String filterName, Long chatId) {
+        return jdbcClient
+            .sql("SELECT id FROM filter WHERE name = :name AND chat_id = :chatId")
+            .param("name", filterName)
+            .param("chatId", chatId)
+            .query(Long.class)
+            .optional()
+            .orElseGet(() -> {
+                // Если тег не найден, создаем новый
+                KeyHolder keyHolder = new GeneratedKeyHolder();
+                jdbcClient
+                    .sql("INSERT INTO filter (name, chat_id) VALUES (:name, :chatId)")
+                    .param("name", filterName)
+                    .param("chatId", chatId)
+                    .update(keyHolder, new String[] {"id"});
+                return keyHolder.getKey().longValue();
+            });
     }
 
     // Удаление ссылки
@@ -249,5 +272,13 @@ public class JdbcLinkRepository {
                 .param(1, prIds.toArray(new Long[0]))
                 .param(2, linkId)
                 .update();
+    }
+
+    public List<String> getFilterNameByLink(Long linkId) {
+        String sql = "SELECT name FROM filter JOIN link_filter ON filter.id = link_filter.filter_id WHERE link_filter.link_id = ?";
+        return jdbcClient.sql(sql)
+            .param(1, linkId)
+            .query(String.class)
+            .list();
     }
 }

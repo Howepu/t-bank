@@ -69,7 +69,7 @@ public class KafkaLinkCheckService extends AbstractLinkCheckService {
                 ISSUE_PR_UPDATE_TEMPLATE,
                 type,
                 link.url(),
-                gitHubIssuePullRequest.gitHubUser(),
+                gitHubIssuePullRequest.gitHubUser().login(),
                 gitHubIssuePullRequest.createdAt(),
                 preview);
 

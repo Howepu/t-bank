@@ -28,7 +28,7 @@ public class LinkController {
 
         List<LinkResponse> links = linkService.getAllLinks(chatId).stream()
                 .map(link -> new LinkResponse(
-                        link.chat().chatId(), sanitize(link.url()), link.assignedTags(), link.filters()))
+                        link.chat().chatId(), sanitize(link.url()), link.assignedTags(), link.assignedFilters()))
                 .toList();
 
         log.info("Найдено {} ссылок для чата {}", links.size(), sanitizedChatId);
@@ -45,7 +45,7 @@ public class LinkController {
         log.info("Ссылка успешно добавлена: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
         return ResponseEntity.ok(
-                new LinkResponse(chatId, savedLink.url(), savedLink.assignedTags(), savedLink.filters()));
+                new LinkResponse(chatId, savedLink.url(), savedLink.assignedTags(), savedLink.assignedFilters()));
     }
 
     @DeleteMapping
@@ -58,7 +58,7 @@ public class LinkController {
         Link link = linkService.removeLink(chatId, removeLinkRequest.url());
         log.info("Ссылка успешно удалена: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
-        return ResponseEntity.ok(new LinkResponse(chatId, link.url(), link.assignedTags(), link.filters()));
+        return ResponseEntity.ok(new LinkResponse(chatId, link.url(), link.assignedTags(), link.assignedFilters()));
     }
 
     @PostMapping("/tag")

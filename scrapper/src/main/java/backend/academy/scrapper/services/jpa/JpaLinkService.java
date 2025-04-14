@@ -1,6 +1,7 @@
 package backend.academy.scrapper.services.jpa;
 
 import backend.academy.scrapper.models.Chat;
+import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.models.Tag;
 import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -121,5 +123,15 @@ public class JpaLinkService implements LinkService {
     public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
         Long[] idsArray = prIds.toArray(new Long[0]);
         linkRepository.updateKnownPrIds(linkId, idsArray);
+    }
+
+    @Override
+    public List<String> getFilterNamesByLink(Long linkId) {
+        List<Filter> filters = linkRepository.findAssignedFiltersById(linkId);
+
+        return filters.stream()
+            .map(Filter::name)
+            .collect(Collectors.toList());
+
     }
 }

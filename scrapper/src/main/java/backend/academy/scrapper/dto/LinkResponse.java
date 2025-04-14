@@ -1,5 +1,6 @@
 package backend.academy.scrapper.dto;
 
+import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Tag;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -23,5 +24,6 @@ public class LinkResponse {
     private Set<Tag> tags;
 
     @JsonProperty("filters")
-    private List<String> filters;
+    private Set<Filter> filters;
+
 }

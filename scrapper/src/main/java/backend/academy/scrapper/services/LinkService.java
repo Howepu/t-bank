@@ -23,4 +23,6 @@ public interface LinkService {
     void updateLinkIssues(Long linkId, List<Long> issueIds);
 
     void updateLinkPullRequests(Long linkId, List<Long> prIds);
+
+    List<String> getFilterNamesByLink(Long linkId);
 }

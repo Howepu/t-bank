@@ -32,7 +32,7 @@ public class StackOverflowClient {
         return webClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/questions/{id}/answers")
+                        .path("/questions/{id}/answers?site=stackoverflow")
                         .queryParam("site", "stackoverflow")
                         .queryParam("order", "desc")
                         .queryParam("sort", "creation")

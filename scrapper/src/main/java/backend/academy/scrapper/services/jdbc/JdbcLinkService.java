@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 
 @Slf4j
 @AllArgsConstructor
@@ -22,7 +19,6 @@ public class JdbcLinkService implements LinkService {
     private final ChatService chatService;
     private final JdbcTagRepository tagRepository;
 
-    @CachePut(value = "linkList", key = "#chatId + ':' + #link.url()")
     @Override
     public Link addLink(Long chatId, Link link) {
         if (chatId == null) {
@@ -38,7 +34,6 @@ public class JdbcLinkService implements LinkService {
         return link;
     }
 
-    @Cacheable(value = "linkList", key = "#chatId")
     @Override
     public Link removeLink(Long chatId, String url) {
         if (!chatService.isChatRegistered(chatId)) {
@@ -67,7 +62,6 @@ public class JdbcLinkService implements LinkService {
         return link;
     }
 
-    @CacheEvict(value = "linkList", key = "#chatId")
     @Override
     public List<Link> getAllLinks(Long chatId) {
 
@@ -106,5 +100,10 @@ public class JdbcLinkService implements LinkService {
     @Override
     public void updateLinkPullRequests(Long linkId, List<Long> prIds) {
         linkRepository.updateLinkPullRequests(linkId, prIds);
+    }
+
+    @Override
+    public List<String> getFilterNamesByLink(Long linkId) {
+        return linkRepository.getFilterNameByLink(linkId);
     }
 }

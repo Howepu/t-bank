@@ -9,11 +9,13 @@ import backend.academy.scrapper.stackoverflow.StackOverflowClient;
 import backend.academy.scrapper.stackoverflow.StackOverflowQuestionAnswer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +62,7 @@ public abstract class AbstractStackoverflowCheckService {
         log.info("Finished link check.");
     }
 
-    public void processLinksBatch(List<Link> links) {
+    public void processLinksBatch(@NotNull List<Link> links) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (Link link : links) {
             if (isStackOverflowQuestion(link.url())) {
@@ -100,6 +102,17 @@ public abstract class AbstractStackoverflowCheckService {
                 List<Long> knownIssueIds = link.knownIssueIds() != null ? link.knownIssueIds() : new ArrayList<>();
                 link.knownIssueIds(knownIssueIds);
 
+                for (String filter : linkService.getFilterNamesByLink(link.id())) {
+                    if (isUserFilter(filter)) {
+                        String[] filterParts = filter.split("=");
+                        String userName = filterParts[1];
+                        if (Objects.equals(userName, answer.owner().name())) {
+                            log.info("Пропускаем обновление ответа от пользователя {}", userName);
+                            return;
+                        }
+                    }
+                }
+
                 if (!knownIssueIds.contains(answer.questionId())) {
                     knownIssueIds.add(answer.questionId());
                     sendAnswerUpdate(link, answer);
@@ -116,6 +129,10 @@ public abstract class AbstractStackoverflowCheckService {
     boolean isStackOverflowQuestion(String url) {
         log.info("Проверка URL: {}", url); // Логируем URL перед проверкой
         return url.matches("https://stackoverflow\\.com/questions/\\d+(/.*)?");
+    }
+
+    private boolean isUserFilter(String str) {
+        return str != null && str.matches("^user=[a-z0-9_.]+$");
     }
 
     protected abstract void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion);
