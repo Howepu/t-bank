@@ -21,12 +21,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public class TagServiceTest {
 
-    @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:17-alpine")
-            .withDatabaseName("scrapper")
-            .withUsername("postgres")
-            .withPassword("postgres");
-
     @Autowired
     private LinkService linkService;
 
