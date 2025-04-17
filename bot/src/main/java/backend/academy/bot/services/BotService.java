@@ -2,14 +2,12 @@ package backend.academy.bot.services;
 
 import backend.academy.bot.clients.TelegramClient;
 import backend.academy.bot.dto.LinkUpdate;
-import io.swagger.v3.oas.annotations.headers.Header;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.retrytopic.TopicSuffixingStrategy;
-import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +25,9 @@ public class BotService {
     }
 
     @RetryableTopic(
-        attempts = "4",
-        backoff = @Backoff(delay = 1000, multiplier = 2.0),
-        topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE
-    )
+            attempts = "4",
+            backoff = @Backoff(delay = 1000, multiplier = 2.0),
+            topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE)
     @KafkaListener(topics = "app.kafka-topic-updates", groupId = "group1")
     public void processKafkaUpdate(LinkUpdate update) {
         System.out.println(update.url());
