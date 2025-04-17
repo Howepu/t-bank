@@ -1,6 +1,6 @@
 package backend.academy.scrapper.services.stackoverflow;
 
-import backend.academy.scrapper.bot.BotHttpClient;
+import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.services.ChatService;
@@ -32,10 +32,14 @@ public abstract class AbstractStackoverflowCheckService {
 
     private final ExecutorService executorService;
 
+    private static final String QUESTION_UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в вопросе на StackOverflow: **%s**%n"
+            + "📅 Последняя активность: %s%n" + "🔗 [Смотреть на StackOverflow](%s)";
+
+    private static final String ANSWER_UPDATE_MESSAGE_TEMPLATE = "🔔 Новый ответ на вопрос **%s** на StackOverflow:%n"
+            + "👤 Автор: %s%n" + "📅 Время ответа: %s%n" + "🔗 [Смотреть ответ на StackOverflow](%s)";
+
     public AbstractStackoverflowCheckService(
-            StackOverflowClient stackOverflowClient,
-            LinkService linkService,
-            ChatService chatService) {
+            StackOverflowClient stackOverflowClient, LinkService linkService, ChatService chatService) {
         this.stackOverflowClient = stackOverflowClient;
         this.linkService = linkService;
         this.chatService = chatService;
@@ -135,7 +139,35 @@ public abstract class AbstractStackoverflowCheckService {
         return str != null && str.matches("^user=[a-z0-9_.]+$");
     }
 
-    protected abstract void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion);
+    protected void sendUpdate(Link link, StackOverflowQuestionAnswer stackOverflowQuestion) {
+        String title = stackOverflowQuestion.title() != null ? stackOverflowQuestion.title() : "Без названия";
+        String lastActivity = stackOverflowQuestion.getLastActivityDateAsDateTime() != null
+                ? stackOverflowQuestion.getLastActivityDateAsDateTime().toString()
+                : "Не указано время";
 
-    protected abstract void sendAnswerUpdate(Link link, StackOverflowQuestionAnswer answer);
+        String message = String.format(QUESTION_UPDATE_MESSAGE_TEMPLATE, title, lastActivity, link.url());
+
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+
+        log.info("Отправка уведомления: {}", message);
+        deliverUpdate(update);
+    }
+
+    public void sendAnswerUpdate(Link link, StackOverflowQuestionAnswer answer) {
+        String title = answer.title() != null ? answer.title() : "Без названия";
+        String displayName = answer.owner().name();
+        String creationDate =
+                answer.getCreationDate() != null ? answer.getCreationDate().toString() : "Не указано время";
+
+        String message = String.format(ANSWER_UPDATE_MESSAGE_TEMPLATE, title, displayName, creationDate, link.url());
+
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+
+        log.info("Отправка обновления ответа: {}", message);
+        deliverUpdate(update);
+    }
+
+    protected abstract void deliverUpdate(LinkUpdate update);
 }

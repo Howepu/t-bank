@@ -155,10 +155,10 @@ public class JdbcLinkRepository {
 
                 String insertLinkTagSql = "INSERT INTO link_filter (link_id, filter_id) VALUES (?, ?)";
                 jdbcClient
-                    .sql(insertLinkTagSql)
-                    .param(1, linkId)
-                    .param(2, filterId)
-                    .update();
+                        .sql(insertLinkTagSql)
+                        .param(1, linkId)
+                        .param(2, filterId)
+                        .update();
             }
         }
 
@@ -186,21 +186,21 @@ public class JdbcLinkRepository {
 
     private Long getFilterIdByNameAndChatId(String filterName, Long chatId) {
         return jdbcClient
-            .sql("SELECT id FROM filter WHERE name = :name AND chat_id = :chatId")
-            .param("name", filterName)
-            .param("chatId", chatId)
-            .query(Long.class)
-            .optional()
-            .orElseGet(() -> {
-                // Если тег не найден, создаем новый
-                KeyHolder keyHolder = new GeneratedKeyHolder();
-                jdbcClient
-                    .sql("INSERT INTO filter (name, chat_id) VALUES (:name, :chatId)")
-                    .param("name", filterName)
-                    .param("chatId", chatId)
-                    .update(keyHolder, new String[] {"id"});
-                return keyHolder.getKey().longValue();
-            });
+                .sql("SELECT id FROM filter WHERE name = :name AND chat_id = :chatId")
+                .param("name", filterName)
+                .param("chatId", chatId)
+                .query(Long.class)
+                .optional()
+                .orElseGet(() -> {
+                    // Если тег не найден, создаем новый
+                    KeyHolder keyHolder = new GeneratedKeyHolder();
+                    jdbcClient
+                            .sql("INSERT INTO filter (name, chat_id) VALUES (:name, :chatId)")
+                            .param("name", filterName)
+                            .param("chatId", chatId)
+                            .update(keyHolder, new String[] {"id"});
+                    return keyHolder.getKey().longValue();
+                });
     }
 
     // Удаление ссылки
@@ -275,10 +275,8 @@ public class JdbcLinkRepository {
     }
 
     public List<String> getFilterNameByLink(Long linkId) {
-        String sql = "SELECT name FROM filter JOIN link_filter ON filter.id = link_filter.filter_id WHERE link_filter.link_id = ?";
-        return jdbcClient.sql(sql)
-            .param(1, linkId)
-            .query(String.class)
-            .list();
+        String sql =
+                "SELECT name FROM filter JOIN link_filter ON filter.id = link_filter.filter_id WHERE link_filter.link_id = ?";
+        return jdbcClient.sql(sql).param(1, linkId).query(String.class).list();
     }
 }

@@ -1,5 +1,6 @@
 package backend.academy.scrapper.services.github;
 
+import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.github.GitHubClient;
 import backend.academy.scrapper.github.GitHubIssuePullRequest;
 import backend.academy.scrapper.github.GitHubRepository;
@@ -27,6 +28,12 @@ public abstract class AbstractLinkCheckService {
 
     private static final int BATCH_SIZE = 250;
     private static final int NUM_THREADS = 4;
+
+    private static final String UPDATE_MESSAGE_TEMPLATE = "🔔 Обновления в репозитории на GitHub: **%s**%n"
+            + "📅 Последний коммит: %s%n" + "🔗 [Смотреть на GitHub](%s)";
+
+    private static final String ISSUE_PR_UPDATE_TEMPLATE =
+            "🔔 Новое %s в репозитории **%s**:%n" + "👤 Автор: %s%n" + "📅 Время создания: %s%n" + "✉️ %s%n";
 
     private final ExecutorService executorService;
 
@@ -119,7 +126,7 @@ public abstract class AbstractLinkCheckService {
 
                 boolean skip = false;
 
-                log.info("Фильтры: {}",  linkService.getFilterNamesByLink(link.id()));
+                log.info("Фильтры: {}", linkService.getFilterNamesByLink(link.id()));
                 for (String filter : linkService.getFilterNamesByLink(link.id())) {
                     log.info("Начинаем поиск фильтров {}", filter);
                     if (isUserFilter(filter)) {
@@ -177,9 +184,47 @@ public abstract class AbstractLinkCheckService {
         linkService.updateLinkPullRequests(link.id(), currentPrIds);
     }
 
-    protected abstract void sendUpdate(Link link, GitHubRepository gitHubRepository);
+    protected void sendUpdate(Link link, GitHubRepository gitHubRepository) {
+        if (link.chat() == null) {
+            log.warn("Чат равен null для ссылки: {}", link.url());
+            return;
+        }
 
-    protected abstract void sendIssueOrPRUpdate(Link link, GitHubIssuePullRequest gitHubIssuePullRequest, String type);
+        String message = String.format(
+                UPDATE_MESSAGE_TEMPLATE, gitHubRepository.name(), gitHubRepository.getPushedAtAsDateTime(), link.url());
+
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+        log.info("Отправляем обновление о репозитории в чат {}: {}", link.chat().chatId(), message);
+        deliverUpdate(update);
+    }
+
+    protected void sendIssueOrPRUpdate(Link link, GitHubIssuePullRequest gitHubIssuePullRequest, String type) {
+        if (link.chat() == null) {
+            log.warn("Чат равен null для ссылки: {}", link.url());
+            return;
+        }
+
+        String preview = gitHubIssuePullRequest.body() != null
+                        && gitHubIssuePullRequest.body().length() > 200
+                ? gitHubIssuePullRequest.body().substring(0, 200)
+                : gitHubIssuePullRequest.body();
+
+        String message = String.format(
+                ISSUE_PR_UPDATE_TEMPLATE,
+                type,
+                link.url(),
+                gitHubIssuePullRequest.gitHubUser().login(),
+                gitHubIssuePullRequest.createdAt(),
+                preview);
+
+        LinkUpdate update = new LinkUpdate(
+                link.chat().chatId(), link.url(), message, List.of(link.chat().chatId()));
+        log.info("Отправляем обновление о репозитории в чат {}: {}", link.chat().chatId(), message);
+        deliverUpdate(update);
+    }
+
+    protected abstract void deliverUpdate(LinkUpdate update);
 
     private boolean isGitHubRepo(String url) {
         return url != null && url.matches("https://github\\.com/[^/]+/[^/]+");

@@ -25,10 +25,10 @@ public class HttpAccessConfiguration {
 
     @Bean
     public AbstractStackoverflowCheckService stackoverflowCheckService(
-        StackOverflowClient stackOverflowClient,
-        LinkService linkService,
-        BotHttpClient botHttpClient,
-        ChatService chatService) {
+            StackOverflowClient stackOverflowClient,
+            LinkService linkService,
+            BotHttpClient botHttpClient,
+            ChatService chatService) {
         return new StackOverflowCheckService(stackOverflowClient, linkService, botHttpClient, chatService);
     }
 }

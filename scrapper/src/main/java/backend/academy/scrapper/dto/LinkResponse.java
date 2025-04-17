@@ -3,7 +3,6 @@ package backend.academy.scrapper.dto;
 import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Tag;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,5 +24,4 @@ public class LinkResponse {
 
     @JsonProperty("filters")
     private Set<Filter> filters;
-
 }

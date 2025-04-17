@@ -13,10 +13,7 @@ import org.springframework.boot.devtools.restart.RestartScope;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {
@@ -45,13 +42,13 @@ class TestcontainersConfiguration {
             throw new RuntimeException("Ошибка при запуске Liquibase", e);
         }
     }
-//
-//    @Bean
-//    @RestartScope
-//    @ServiceConnection(name = "backend/academy/scrapper/redis")
-//    GenericContainer<?> redisContainer() {
-//        return new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
-//    }
+    //
+    //    @Bean
+    //    @RestartScope
+    //    @ServiceConnection(name = "backend/academy/scrapper/redis")
+    //    GenericContainer<?> redisContainer() {
+    //        return new GenericContainer<>(DockerImageName.parse("redis:7-alpine")).withExposedPorts(6379);
+    //    }
 
     @Bean
     @RestartScope
@@ -60,12 +57,12 @@ class TestcontainersConfiguration {
         return postgreSQLContainer;
     }
 
-//    @Bean
-//    @RestartScope
-//    @ServiceConnection
-//    KafkaContainer kafkaContainer() {
-//        return new KafkaContainer("apache/kafka-native:3.8.1").withExposedPorts(9092);
-//    }
+    //    @Bean
+    //    @RestartScope
+    //    @ServiceConnection
+    //    KafkaContainer kafkaContainer() {
+    //        return new KafkaContainer("apache/kafka-native:3.8.1").withExposedPorts(9092);
+    //    }
 
     private static void cleanDatabase() {
         try (Connection connection = postgreSQLContainer.createConnection("")) {

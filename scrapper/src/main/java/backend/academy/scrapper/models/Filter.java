@@ -9,12 +9,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -53,5 +53,4 @@ public class Filter {
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
     }
-
 }

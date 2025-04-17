@@ -1,7 +1,6 @@
 package backend.academy.scrapper.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +28,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class Link implements Serializable{
+public class Link implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,22 +57,22 @@ public class Link implements Serializable{
 
     @JsonProperty("tags")
     @ManyToMany(
-        fetch = FetchType.EAGER,
-        cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "link_tag",
-        joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
+            name = "link_tag",
+            joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id"))
     private Set<Tag> assignedTags = new HashSet<>();
 
     @JsonProperty("filters")
     @ManyToMany(
-        fetch = FetchType.EAGER,
-        cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+            fetch = FetchType.EAGER,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "link_filter",
-        joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "filter_id", referencedColumnName = "id"))
+            name = "link_filter",
+            joinColumns = @JoinColumn(name = "link_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "filter_id", referencedColumnName = "id"))
     private Set<Filter> assignedFilters = new HashSet<>();
 
     public Link(String url, Chat chat) {

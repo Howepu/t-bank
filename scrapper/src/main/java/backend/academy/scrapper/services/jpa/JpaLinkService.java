@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -92,25 +93,31 @@ public class JpaLinkService implements LinkService {
 
     @Override
     public List<Link> findLinksByTag(String tagName, Long chatId) {
-        return linkRepository.findLinksByTag(tagName, chatId);
+        return linkRepository.findAllByAssignedTagsNameAndChatChatId(tagName, chatId);
     }
 
     @Override
+    @Transactional
     public void attachTagToLink(String url, String name) {
-
         Tag tag = tagRepository.findByName(name);
         Link link = linkRepository.findByUrl(url);
 
-        linkRepository.attachTagToLink(link.id(), tag.id());
+        if (tag != null && link != null) {
+            link.assignedTags().add(tag);
+            linkRepository.save(link);
+        }
     }
 
     @Override
+    @Transactional
     public void detachTagFromLink(String url, String name) {
-
         Tag tag = tagRepository.findByName(name);
         Link link = linkRepository.findByUrl(url);
 
-        linkRepository.detachTagFromLink(link.id(), tag.id());
+        if (tag != null && link != null) {
+            link.assignedTags().remove(tag);
+            linkRepository.save(link);
+        }
     }
 
     @Override
@@ -127,11 +134,10 @@ public class JpaLinkService implements LinkService {
 
     @Override
     public List<String> getFilterNamesByLink(Long linkId) {
-        List<Filter> filters = linkRepository.findAssignedFiltersById(linkId);
-
+        Optional<Link> link = linkRepository.findById(linkId);
+        Set<Filter> filters = link.get().assignedFilters();
         return filters.stream()
             .map(Filter::name)
-            .collect(Collectors.toList());
-
+            .toList();
     }
 }

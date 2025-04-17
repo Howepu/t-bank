@@ -33,10 +33,10 @@ public class KafkaAccessConfiguration {
 
     @Bean
     public AbstractStackoverflowCheckService stackoverflowCheckService(
-        StackOverflowClient stackOverflowClient,
-        LinkService linkService,
-        ChatService chatService,
-        KafkaTemplate<String, LinkUpdate> kafkaTemplate) {
+            StackOverflowClient stackOverflowClient,
+            LinkService linkService,
+            ChatService chatService,
+            KafkaTemplate<String, LinkUpdate> kafkaTemplate) {
         return new KafkaStackOverflowCheckService(stackOverflowClient, linkService, chatService, kafkaTemplate);
     }
 }
