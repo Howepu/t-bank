@@ -45,6 +45,6 @@ public class TrackCommand implements CommandHandler {
         }
 
         return new SendMessage(chatId, "Команда /track ожидает URL.")
-            .replyToMessageId(update.message().messageId());
+                .replyToMessageId(update.message().messageId());
     }
 }

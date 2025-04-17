@@ -34,13 +34,13 @@ public class UntrackCommand implements CommandHandler {
 
         if (messageText.equals("/untrack")) {
             return new SendMessage(chatId, "Введите ссылку, которую хотите удалить.")
-                .replyToMessageId(update.message().messageId());
+                    .replyToMessageId(update.message().messageId());
         }
 
         String[] parts = messageText.split("\\s+", 2);
         if (parts.length < 2 || parts[1].trim().isEmpty()) {
             return new SendMessage(chatId, "Пожалуйста, укажите ссылку после команды /untrack")
-                .replyToMessageId(update.message().messageId());
+                    .replyToMessageId(update.message().messageId());
         }
 
         String urlToRemove = parts[1].trim();
@@ -49,13 +49,12 @@ public class UntrackCommand implements CommandHandler {
         try {
             scrapperHttpClient.removeLink(chatId, removeLinkRequest).block();
 
-            // ⚠️ Инвалидация кэша
             redisTemplate.delete(CACHE_PREFIX + chatId);
 
             return new SendMessage(chatId, "Ссылка удалена: " + removeLinkRequest.url());
         } catch (Exception e) {
             return new SendMessage(chatId, "Ошибка! Ссылка не найдена или не отслеживается: " + removeLinkRequest.url())
-                .replyToMessageId(update.message().messageId());
+                    .replyToMessageId(update.message().messageId());
         }
     }
 }

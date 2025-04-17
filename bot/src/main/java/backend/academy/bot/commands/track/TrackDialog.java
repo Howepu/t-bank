@@ -125,7 +125,8 @@ public class TrackDialog {
 
                 // Преобразуем теги в TagDto
                 List<TagDto> tagObjects = data.tags.stream().map(TagDto::new).collect(Collectors.toList());
-                List<FilterDto> filterObjects = data.filters.stream().map(FilterDto::new).collect(Collectors.toList());
+                List<FilterDto> filterObjects =
+                        data.filters.stream().map(FilterDto::new).collect(Collectors.toList());
 
                 AddLinkRequest addLinkRequest = new AddLinkRequest(chatId, data.url, tagObjects, filterObjects);
 
