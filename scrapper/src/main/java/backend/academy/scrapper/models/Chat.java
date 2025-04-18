@@ -28,10 +28,14 @@ public class Chat implements Serializable {
     @JsonProperty("chatId")
     private Long chatId;
 
+    @JsonProperty("mode")
+    private String mode;
+
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Link> links = new ArrayList<>();
 
-    public Chat(Long chatId) {
+    public Chat(Long chatId, String mode) {
         this.chatId = chatId;
+        this.mode = mode;
     }
 }

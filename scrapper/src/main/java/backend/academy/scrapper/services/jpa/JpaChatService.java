@@ -5,6 +5,7 @@ import backend.academy.scrapper.repositories.jpa.JpaChatRepository;
 import backend.academy.scrapper.repositories.jpa.JpaLinkRepository;
 import backend.academy.scrapper.services.ChatService;
 import java.util.Set;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
@@ -38,6 +39,20 @@ public class JpaChatService implements ChatService {
     @Override
     public Set<Chat> getAllRegisteredChatIds() {
         return chatRepository.getAllChats();
+    }
+
+    @Override
+    @Transactional
+    public void updateMode(Long chatId, String mode) {
+        Chat chat = chatRepository.findById(chatId)
+            .orElseThrow(() -> new IllegalArgumentException("Чат не найден: " + chatId));
+        chat.mode(mode);
+        chatRepository.save(chat);
+    }
+
+    @Override
+    public Set<Chat> getChatsByMode(String mode) {
+        return chatRepository.getChatsByMode(mode);
     }
 
     @Override

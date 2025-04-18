@@ -13,4 +13,8 @@ public interface ChatService {
     void removeChat(Long chatId);
 
     Set<Chat> getAllRegisteredChatIds();
+
+    void updateMode(Long chatId, String mode);
+
+    Set<Chat> getChatsByMode(String mode);
 }

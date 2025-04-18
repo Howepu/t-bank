@@ -49,6 +49,21 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/mode")
+    public ResponseEntity<Void> updateChatMode(@PathVariable Long id, @RequestBody String request) {
+        // Валидация ID
+        if (id == null || id <= 0) {
+            log.info("Недопустимый ID: {}", sanitize(id));
+            return ResponseEntity.badRequest().build();
+        }
+
+        String sanitizedId = sanitize(id);
+        chatService.updateMode(id, request);
+
+        log.info("У чата с ID {} успешно изменён режим", sanitizedId);
+        return ResponseEntity.ok().build();
+    }
+
     // Метод для санитизации данных перед логгированием
     private String sanitize(Long value) {
         return value != null ? value.toString().replaceAll("[\r\n]", "") : "null";

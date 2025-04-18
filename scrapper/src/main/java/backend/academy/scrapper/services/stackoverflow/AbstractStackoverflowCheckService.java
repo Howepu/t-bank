@@ -46,10 +46,20 @@ public abstract class AbstractStackoverflowCheckService {
         this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
     }
 
+    @Scheduled(cron = "${app.cron}")
+    public void digestCheckGitHubLinks() {
+        Set<Chat> chatIds = chatService.getChatsByMode("diajest");
+        checkLinks(chatIds);
+    }
+
     @Scheduled(fixedRate = 5000)
-    public void checkLinks() {
+    public void immediateCheckGitHubLinks() {
+        Set<Chat> chatIds = chatService.getChatsByMode("immediate");
+        checkLinks(chatIds);
+    }
+
+    public void checkLinks(Set<Chat> chatIds) {
         log.info("Starting link check...");
-        Set<Chat> chatIds = chatService.getAllRegisteredChatIds();
         for (Chat chat : chatIds) {
             List<Link> links = linkService.getAllLinks(chat.chatId());
 

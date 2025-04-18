@@ -51,7 +51,7 @@ class ChatServiceTest {
 
     @Test
     void getChatById_ShouldReturnChat_WhenExists() {
-        Chat chat = new Chat(123L);
+        Chat chat = new Chat(123L, null);
         chatService.registerChat(chat.chatId());
 
         Chat result = chatService.getChatById(123L);
@@ -63,7 +63,7 @@ class ChatServiceTest {
     @Test
     void removeChat_ShouldDeleteChat() {
         // Создаём чат и добавляем его в базу
-        Chat chat = new Chat(123L);
+        Chat chat = new Chat(123L, null);
         chatService.registerChat(chat.chatId());
 
         // Проверяем, что чат был добавлен

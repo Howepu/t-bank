@@ -1,6 +1,7 @@
 app:
   message-transport: kafka
   database-access-type: jdbc
+  cron: "30 45 17 * * *"
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:
     key: ${SO_TOKEN_KEY}

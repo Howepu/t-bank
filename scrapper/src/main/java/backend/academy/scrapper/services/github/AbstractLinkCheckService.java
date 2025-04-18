@@ -44,12 +44,27 @@ public abstract class AbstractLinkCheckService {
         this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
     }
 
-    @Scheduled(fixedRate = 5000)
-    public void checkLinks() {
+    @Scheduled(cron = "${app.cron}")
+    public void digestCheckGitHubLinks() {
         log.info("Начинаем проверку ссылок...");
 
-        Set<Chat> chatIds = chatService.getAllRegisteredChatIds();
+        Set<Chat> chatIds = chatService.getChatsByMode("diajest");
+        checkLinks(chatIds);
+
         log.debug("Найдено {} зарегистрированных чатов для проверки ссылок.", chatIds.size());
+    }
+
+    @Scheduled(fixedRate = 5000)
+    public void immediateCheckGitHubLinks() {
+        log.info("Начинаем проверку ссылок...");
+
+        Set<Chat> chatIds = chatService.getChatsByMode("immediate");
+        checkLinks(chatIds);
+
+        log.debug("Найдено {} зарегистрированных чатов для проверки ссылок.", chatIds.size());
+    }
+
+    private void checkLinks(Set<Chat> chatIds) {
 
         for (Chat chat : chatIds) {
             List<Link> links = linkService.getAllLinks(chat.chatId());

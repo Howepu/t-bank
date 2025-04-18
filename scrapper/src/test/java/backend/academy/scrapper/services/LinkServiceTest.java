@@ -47,7 +47,7 @@ class LinkServiceTest {
     @Test
     void addLink_ShouldAddLink() {
         // Создание объекта Chat
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
 
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);
@@ -63,7 +63,7 @@ class LinkServiceTest {
 
     @Test
     void removeLink_ShouldRemoveLink() {
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
 
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);
@@ -80,7 +80,7 @@ class LinkServiceTest {
 
     @Test
     void getAllLinks_ShouldReturnLinks() {
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
 
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);
@@ -97,7 +97,7 @@ class LinkServiceTest {
 
     @Test
     void findLinksByTag_ShouldReturnLinksWithTag() {
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);
         Link link2 = new Link("https://example2.com", chat);
@@ -117,7 +117,7 @@ class LinkServiceTest {
 
     @Test
     void attachTagToLink_ShouldAttachTag() {
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
 
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);
@@ -135,7 +135,7 @@ class LinkServiceTest {
 
     @Test
     void detachTagFromLink_ShouldDetachTag() {
-        Chat chat = new Chat(123L); // Предположим, что у вас есть соответствующий конструктор в Chat
+        Chat chat = new Chat(123L, null); // Предположим, что у вас есть соответствующий конструктор в Chat
 
         // Указание URL, чата и времени создания
         Link link = new Link("https://example.com", chat);

@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -135,9 +134,8 @@ public class JpaLinkService implements LinkService {
     @Override
     public List<String> getFilterNamesByLink(Long linkId) {
         Optional<Link> link = linkRepository.findById(linkId);
-        Set<Filter> filters = link.get().assignedFilters();
-        return filters.stream()
-            .map(Filter::name)
-            .toList();
+        Set<Filter> filters = link.orElseThrow(() -> new IllegalStateException("Link not found"))
+                .assignedFilters();
+        return filters.stream().map(Filter::name).toList();
     }
 }

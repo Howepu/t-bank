@@ -37,4 +37,14 @@ public class JdbcChatService implements ChatService {
     public Set<Chat> getAllRegisteredChatIds() {
         return jdbcChatRepository.getAll();
     }
+
+    @Override
+    public void updateMode(Long chatId, String mode) {
+        jdbcChatRepository.updateMode(chatId, mode);
+    }
+
+    @Override
+    public Set<Chat> getChatsByMode(String mode) {
+        return jdbcChatRepository.getChatsByMode(mode);
+    }
 }

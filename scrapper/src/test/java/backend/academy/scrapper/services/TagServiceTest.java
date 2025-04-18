@@ -36,7 +36,7 @@ public class TagServiceTest {
 
     @Test
     void saveByName_ShouldSaveTag() {
-        Chat chat = new Chat(123L);
+        Chat chat = new Chat(123L, null);
         tagService.saveByName("tag1", chat.chatId());
         List<Tag> tags = tagService.findAll(chat.chatId());
         assertThat(tags).hasSize(1).extracting(Tag::name).contains("tag1");
