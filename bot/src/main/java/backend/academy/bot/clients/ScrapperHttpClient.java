@@ -33,6 +33,15 @@ public class ScrapperHttpClient {
         return webClient.delete().uri("/tg-chat/{id}", chatId).retrieve().bodyToMono(Void.class);
     }
 
+    public Mono<Void> setChatMode(long chatId, String mode) {
+        return webClient
+                .post()
+                .uri("/tg-chat/{id}/mode", chatId)
+                .bodyValue(mode)
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
+
     public Mono<ListLinksResponse> getLinks(long chatId) {
         return webClient
                 .get()

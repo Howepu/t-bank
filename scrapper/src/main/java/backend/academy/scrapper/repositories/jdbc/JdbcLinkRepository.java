@@ -31,7 +31,7 @@ public class JdbcLinkRepository {
         link.id(rs.getLong("id"));
         link.url(rs.getString("url"));
         link.createdAt(null);
-        link.chat(new Chat(rs.getLong("chat_id")));
+        link.chat(new Chat(rs.getLong("chat_id"), null));
         Array issueIdsArray = rs.getArray("known_issue_ids");
         link.knownIssueIds(
                 issueIdsArray != null ? Arrays.asList((Long[]) issueIdsArray.getArray()) : new ArrayList<>());

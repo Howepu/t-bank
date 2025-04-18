@@ -1,7 +1,5 @@
 package backend.academy.scrapper.repositories.jpa;
 
-import backend.academy.scrapper.models.Chat;
-import backend.academy.scrapper.models.Filter;
 import backend.academy.scrapper.models.Link;
 import io.lettuce.core.dynamic.annotation.Param;
 import java.time.LocalDateTime;

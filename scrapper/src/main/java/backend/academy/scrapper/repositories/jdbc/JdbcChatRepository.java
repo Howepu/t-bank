@@ -34,4 +34,18 @@ public class JdbcChatRepository {
         String sql = "SELECT * FROM chat";
         return jdbcClient.sql(sql).query(Chat.class).set();
     }
+
+    public void updateMode(Long chatId, String mode) {
+        String sql = "UPDATE chat SET mode = ? WHERE chat_id = ?";
+        jdbcClient.sql(sql).param(1, mode).param(2, chatId).update();
+    }
+
+    public Set<Chat> getChatsByMode(String mode) {
+        String sql = "SELECT * FROM chat WHERE mode = ?";
+        return jdbcClient
+                .sql(sql)
+                .param(1, mode.toLowerCase())
+                .query(Chat.class)
+                .set();
+    }
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class ListCommand implements CommandHandler {
 
     private final ScrapperHttpClient scrapperHttpClient;
-    private final RedisTemplate<String, String> redisTemplate; // Изменено на String
+    private final RedisTemplate<String, String> redisTemplate;
 
     private static final Duration CACHE_TTL = Duration.ofSeconds(10);
     private static final String CACHE_PREFIX = "bot:list:";

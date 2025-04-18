@@ -25,4 +25,7 @@ public interface JpaChatRepository extends JpaRepository<Chat, Long> {
     @Modifying
     @Query("DELETE FROM Chat c WHERE c.chatId = :chatId")
     void deleteByChatId(@Param("chatId") Long chatId);
+
+    Set<Chat> getChatsByMode(String mode);
+
 }
