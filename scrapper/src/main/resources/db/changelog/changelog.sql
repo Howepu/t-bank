@@ -1,6 +1,6 @@
 CREATE TABLE chat (
     chat_id BIGINT NOT NULL UNIQUE PRIMARY KEY,
-    mode TEXT NOT NULL DEFAULT 'IMMEDIATE'
+    mode TEXT NOT NULL DEFAULT 'immediate'
 );
 
 CREATE TABLE link (
