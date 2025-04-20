@@ -67,6 +67,5 @@ jobs:
         with:
           java-version: '23'
           distribution: 'temurin'
-          cache: maven
 
       - run: mvn compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
