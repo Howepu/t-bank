@@ -9,12 +9,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     name: Build
     permissions:
       contents: read
       packages: write
       pull-requests: write
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-23
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -49,11 +52,14 @@ jobs:
 
   linter:
     name: linter
-    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       pull-requests: write
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-23
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -61,6 +67,5 @@ jobs:
         with:
           java-version: '23'
           distribution: 'temurin'
-          cache: maven
 
       - run: mvn compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check
