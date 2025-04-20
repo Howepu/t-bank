@@ -16,7 +16,7 @@ jobs:
       pull-requests: write
     runs-on: edu-self-hosted
     container:
-      image: maven:3-eclipse-temurin-23
+      image: maven:3.9.6-eclipse-temurin-23
     timeout-minutes: 10
 
     steps:
