@@ -14,7 +14,7 @@ jobs:
       contents: read
       packages: write
       pull-requests: write
-    runs-on: ubuntu-latest
+    runs-on: edu-self-hosted
     container:
       image: maven:3-eclipse-temurin-23
     timeout-minutes: 10
