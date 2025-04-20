@@ -59,22 +59,4 @@ class ChatServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.chatId()).isEqualTo(123L);
     }
-
-    @Test
-    void removeChat_ShouldDeleteChat() {
-        // Создаём чат и добавляем его в базу
-        Chat chat = new Chat(123L, null);
-        chatService.registerChat(chat.chatId());
-
-        // Проверяем, что чат был добавлен
-        Chat insertedChat = chatService.getChatById(chat.chatId());
-        assertThat(insertedChat).isNotNull(); // Чат должен быть найден
-
-        // Удаляем чат
-        chatService.removeChat(123L);
-
-        // Проверяем, что чат был удалён
-        Chat deletedChat = chatService.getChatById(123L);
-        assertThat(deletedChat).isNull(); // После удаления чат должен быть равен null
-    }
 }

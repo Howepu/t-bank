@@ -31,7 +31,7 @@ public class JdbcLinkRepository {
         link.id(rs.getLong("id"));
         link.url(rs.getString("url"));
         link.createdAt(null);
-        link.chat(new Chat(rs.getLong("chat_id"), null));
+        link.chat(new Chat(rs.getLong("chat_id"), rs.getString("mode")));
         Array issueIdsArray = rs.getArray("known_issue_ids");
         link.knownIssueIds(
                 issueIdsArray != null ? Arrays.asList((Long[]) issueIdsArray.getArray()) : new ArrayList<>());
@@ -70,8 +70,11 @@ public class JdbcLinkRepository {
     public List<Link> findAllLinksByChatId(Long chatId) {
         String sql =
                 """
-    SELECT l.id, l.url, l.created_at, l.known_issue_ids, l.known_pr_ids, l.chat_id
+
+                    SELECT l.id, l.url, l.created_at, l.known_issue_ids, l.known_pr_ids,
+           l.chat_id, c.mode
     FROM link l
+    JOIN chat c ON l.chat_id = c.chat_id
     WHERE l.chat_id = :chatId
     """;
 
@@ -192,7 +195,7 @@ public class JdbcLinkRepository {
                 .query(Long.class)
                 .optional()
                 .orElseGet(() -> {
-                    // Если тег не найден, создаем новый
+                    // Если фильтр не найден, создаем новый
                     KeyHolder keyHolder = new GeneratedKeyHolder();
                     jdbcClient
                             .sql("INSERT INTO filter (name, chat_id) VALUES (:name, :chatId)")

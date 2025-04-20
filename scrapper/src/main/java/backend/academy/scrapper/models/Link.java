@@ -82,5 +82,6 @@ public class Link implements Serializable {
         this.knownIssueIds = new ArrayList<>();
         this.knownPrIds = new ArrayList<>();
         this.assignedTags = new HashSet<>();
+        this.assignedFilters = new HashSet<>();
     }
 }

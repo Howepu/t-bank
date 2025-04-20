@@ -1,6 +1,6 @@
 app:
   message-transport: kafka
-  database-access-type: jdbc
+  database-access-type: jpa
   cron: "30 45 17 * * *"
   github-token: ${GITHUB_TOKEN} # env variable
   stackoverflow:

@@ -67,7 +67,6 @@ services:
     command: redis-server --save 60 1 --appendonly yes
     restart: unless-stopped
 
-
 networks:
   backend:
     driver: bridge
