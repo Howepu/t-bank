@@ -1,6 +1,7 @@
 package backend.academy.scrapper.controllers;
 
 import backend.academy.scrapper.dto.*;
+import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.services.LinkService;
 import java.util.List;
@@ -36,16 +37,20 @@ public class LinkController {
     }
 
     @PostMapping
-    public ResponseEntity<LinkResponse> addLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody Link link) {
-        String sanitizedUrl = sanitize(link.url());
+    public ResponseEntity<LinkResponse> addLink(
+            @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody LinkRequest request) {
+        String sanitizedUrl = sanitize(request.url());
         String sanitizedChatId = sanitize(chatId);
+
         log.info("Добавление новой ссылки: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
-        Link savedLink = linkService.addLink(chatId, link);
+        Link link = new Link(request.url(), new Chat(chatId, null));
+
+        linkService.addLink(chatId, link);
+
         log.info("Ссылка успешно добавлена: {} для чата {}", sanitizedUrl, sanitizedChatId);
 
-        return ResponseEntity.ok(
-                new LinkResponse(chatId, savedLink.url(), savedLink.assignedTags(), savedLink.assignedFilters()));
+        return ResponseEntity.ok(new LinkResponse(chatId, link.url(), link.assignedTags(), link.assignedFilters()));
     }
 
     @DeleteMapping
