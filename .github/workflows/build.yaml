@@ -26,8 +26,6 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
           cache: maven
-      - name: Docker login 
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       - name: Start PostgreSQL
         run: |
           docker run --name test-postgres \
