@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: edu-self-hosted 
+    runs-on: edu-self-hosted
     timeout-minutes: 10
     name: Build
     permissions:
@@ -25,7 +25,13 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
           cache: maven
-          maven: true 
+
+      - name: Установить Maven
+        run: |
+          curl -fsSL https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o maven.tar.gz
+          tar -xzf maven.tar.gz
+          sudo mv apache-maven-3.9.6 /opt/maven
+          echo "/opt/maven/bin" >> $GITHUB_PATH
 
       - name: Start PostgreSQL
         run: |
@@ -42,7 +48,7 @@ jobs:
         run: mvn verify
 
       - name: Остановить и удалить PostgreSQL-контейнер
-        if: always() 
+        if: always()
         run: docker rm -f test-postgres
 
   linter:
