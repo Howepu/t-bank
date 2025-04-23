@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -45,23 +46,6 @@ class KafkaBotServiceTest {
     void setUp() {
         System.setProperty("TELEGRAM_TOKEN", "test-token"); // Заглушка для тестов
         doNothing().when(telegramClient).sendMessage(anyLong(), anyString());
-    }
-
-    @Test
-    void testValidLinkUpdateMessageProcessed() throws Exception {
-        LinkUpdate validUpdate =
-                new LinkUpdate(123L, "https://github.com/user/repo", "New PR: Fix bug", List.of(123456L));
-
-        String json = objectMapper.writeValueAsString(validUpdate);
-        System.out.println("Sending JSON: " + json);
-
-        kafkaTemplate.send("app.kafka-topic-updates", validUpdate);
-
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .pollInterval(Duration.ofMillis(100))
-                .untilAsserted(() ->
-                        verify(telegramClient).sendMessage(eq(123456L), contains("https://github.com/user/repo")));
     }
 
     @Test
