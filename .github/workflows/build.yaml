@@ -41,6 +41,22 @@ jobs:
           -e POSTGRES_DB=scrapper \
           -p 5433:5432 -d postgres:17-alpine
 
+      - name: Start ZooKeeper
+        run: |
+          docker run -d --name zookeeper -p 2181:2181 zookeeper:3.7
+
+      - name: Start Kafka
+        run: |
+          docker run -d --name kafka \
+            --link zookeeper \
+            -p 29092:29092 \
+            -e KAFKA_BROKER_ID=1 \
+            -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+            -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092 \
+            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092 \
+            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+            confluentinc/cp-kafka:7.5.1
+
       - name: Разрешить запуск Testcontainers
         run: echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
 
@@ -49,7 +65,11 @@ jobs:
 
       - name: Остановить и удалить PostgreSQL-контейнер
         if: always()
-        run: docker rm -f test-postgres
+        run: docker rm -f test-postgres || true
+
+      - name: Остановить и удалить Kafka и ZooKeeper
+        if: always()
+        run: docker rm -f kafka zookeeper || true
 
   linter:
     name: linter
