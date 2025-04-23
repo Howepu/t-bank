@@ -25,6 +25,7 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
           cache: maven
+          maven: true 
 
       - name: Start PostgreSQL
         run: |
