@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # заменено с edu-self-hosted на ubuntu-latest
+    runs-on: edu-self-hosted
     timeout-minutes: 10
     name: Build
     permissions:
@@ -32,43 +32,28 @@ jobs:
           tar -xzf maven.tar.gz
           sudo mv apache-maven-3.9.6 /opt/maven
           echo "/opt/maven/bin" >> $GITHUB_PATH
-
-      - name: Запустить Kafka и PostgreSQL
+      - name: Start PostgreSQL
         run: |
-          docker network create test-network
+          docker run --name test-postgres \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_DB=scrapper \
+          -p 5433:5432 -d postgres:17-alpine
+      - name: Разрешить запуск Testcontainers
+        run: echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
 
-          docker run --name test-postgres --network test-network \
-            -e POSTGRES_USER=postgres \
-            -e POSTGRES_PASSWORD=postgres \
-            -e POSTGRES_DB=scrapper \
-            -p 5433:5432 -d postgres:17-alpine
-
-          docker run --name test-kafka --network test-network -p 9092:9092 \
-            -e KAFKA_BROKER_ID=1 \
-            -e KAFKA_ZOOKEEPER_CONNECT=localhost:2181 \
-            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
-            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
-            -e KAFKA_LOG_RETENTION_HOURS=1 \
-            -e ALLOW_PLAINTEXT_LISTENER=yes \
-            -d bitnami/kafka:latest
-
-      - name: Настройки Testcontainers
-        run: |
-          echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
-
-      - name: Maven build
+      - name: maven build
         run: mvn verify
 
-      - name: Очистка Docker
+      - name: Остановить и удалить PostgreSQL-контейнер
         if: always()
-        run: |
-          docker rm -f test-postgres || true
-          docker rm -f test-kafka || true
-          docker network rm test-network || true
+        run: docker rm -f test-postgres
 
   linter:
     name: linter
-    runs-on: ubuntu-latest  # заменено с edu-self-hosted
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-24
     timeout-minutes: 10
     permissions:
       contents: read
