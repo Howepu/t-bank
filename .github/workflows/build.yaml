@@ -9,15 +9,15 @@ on:
 
 jobs:
   build:
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-24
+    timeout-minutes: 10
     name: Build
     permissions:
       contents: read
       packages: write
       pull-requests: write
-    runs-on: edu-self-hosted
-    container:
-      image: maven:3.9.6-eclipse-temurin-23
-    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -41,14 +41,14 @@ jobs:
 
   linter:
     name: linter
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-24
+    timeout-minutes: 10
     permissions:
       contents: read
       packages: write
       pull-requests: write
-    runs-on: edu-self-hosted
-    container:
-      image: maven:3-eclipse-temurin-23
-    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
