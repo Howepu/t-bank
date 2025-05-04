@@ -43,6 +43,47 @@ spring:
       host: localhost
       port: 6379
 
+  webclient:
+    connect-timeout: 5000
+    read-timeout: 5000
+
+bucket4j:
+  enabled: true
+  cache-to-use: simple
+  filters:
+    - cache-name: rateLimitCache
+      url: .*
+      http-status-code: TOO_MANY_REQUESTS
+      rate-limits:
+        - bandwidths:
+            - capacity: 10
+              time: 1
+              unit: seconds
+          expression: "request.getRemoteAddr()"
+
+resilience4j:
+  retry:
+    instances:
+      UpdateRetry:
+        max-attempts: 3
+        wait-duration: 2s
+        retry-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+          - org.springframework.web.client.HttpServerErrorException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+
+  circuitbreaker:
+    instances:
+      UpdateCB:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 1
+        minimum-number-of-calls: 1
+        failure-rate-threshold: 100
+        permitted-number-of-calls-in-half-open-state: 1
+        wait-duration-in-open-state: 1s
+
 
 server:
   port: 8081

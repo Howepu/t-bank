@@ -26,8 +26,8 @@ public class JdbcChatRepository {
     public Chat getByChatId(Long chatId) {
         String sql = "SELECT * FROM chat WHERE chat_id = ?";
         return jdbcClient.sql(sql).param(1, chatId).query(Chat.class).stream()
-                .findFirst() // Находим первый элемент (если есть)
-                .orElse(null); // Если пусто, возвращаем null
+                .findFirst()
+                .orElse(null);
     }
 
     public Set<Chat> getAll() {
