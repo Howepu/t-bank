@@ -8,6 +8,8 @@ import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SetMyCommands;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +25,13 @@ public class TelegramBotService {
     private final TelegramBot telegramBot;
     private final Map<String, CommandHandler> commandHandlers;
     private final TrackDialog trackDialog;
+    private final Counter counter;
 
-    public TelegramBotService(List<CommandHandler> commandHandlers, TrackDialog trackDialog) {
+    public TelegramBotService(List<CommandHandler> commandHandlers, TrackDialog trackDialog, MeterRegistry registry) {
+        this.counter = Counter.builder("telegram.messages.total")
+                .description("Total received Telegram messages")
+                .tag("type", "user")
+                .register(registry);
         String botToken = System.getenv("TELEGRAM_TOKEN");
         this.telegramBot = new TelegramBot(botToken);
         this.commandHandlers =
@@ -58,6 +65,8 @@ public class TelegramBotService {
             log.info("Получено обновление без текста сообщения.");
             return;
         }
+
+        counter.increment();
 
         long chatId = update.message().chat().id();
         String messageText = update.message().text().trim();
