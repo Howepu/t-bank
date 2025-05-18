@@ -8,6 +8,8 @@ import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
 import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.services.LinkService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,8 @@ public abstract class AbstractLinkCheckService {
     private final GitHubClient gitHubClient;
     private final LinkService linkService;
     private final ChatService chatService;
+    private final Timer ghScrapeTimer;
+    private final MeterRegistry registry;
 
     private static final int BATCH_SIZE = 250;
     private static final int NUM_THREADS = 4;
@@ -37,11 +41,17 @@ public abstract class AbstractLinkCheckService {
 
     private final ExecutorService executorService;
 
-    public AbstractLinkCheckService(GitHubClient gitHubClient, LinkService linkService, ChatService chatService) {
+    public AbstractLinkCheckService(
+            GitHubClient gitHubClient, LinkService linkService, ChatService chatService, MeterRegistry registry) {
         this.gitHubClient = gitHubClient;
         this.linkService = linkService;
         this.chatService = chatService;
         this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
+        this.ghScrapeTimer = Timer.builder("scrape.time")
+                .tags("platform", "github")
+                .publishPercentiles(0.5, 0.95, 0.90)
+                .register(registry);
+        this.registry = registry;
     }
 
     @Scheduled(cron = "${app.cron}")
@@ -97,6 +107,8 @@ public abstract class AbstractLinkCheckService {
     }
 
     private void checkGitHubRepo(Link link) {
+
+        Timer.Sample sample = Timer.start(registry);
         String[] parts = link.url().split("/");
         String owner = parts[3];
         String repo = parts[4];
@@ -112,6 +124,8 @@ public abstract class AbstractLinkCheckService {
                         result -> log.debug("Репозиторий проверен: {}", link.url()),
                         error -> log.error(
                                 "Ошибка при проверке репозитория GitHub {}: {}", link.url(), error.getMessage()));
+
+        sample.stop(ghScrapeTimer);
     }
 
     private void processGitHubRepository(GitHubRepository gitHubRepository, Link link) {

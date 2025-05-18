@@ -4,6 +4,7 @@ import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.github.GitHubClient;
 import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.services.LinkService;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -21,8 +22,9 @@ public class KafkaLinkCheckService extends AbstractLinkCheckService {
             LinkService linkService,
             ChatService chatService,
             KafkaTemplate<String, LinkUpdate> kafkaTemplate,
-            String updates) {
-        super(gitHubClient, linkService, chatService);
+            String updates,
+            MeterRegistry registry) {
+        super(gitHubClient, linkService, chatService, registry);
         this.kafkaTemplate = kafkaTemplate;
         this.updates = updates;
     }

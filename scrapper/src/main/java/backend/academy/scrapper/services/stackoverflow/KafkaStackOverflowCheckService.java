@@ -4,6 +4,7 @@ import backend.academy.scrapper.dto.LinkUpdate;
 import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.services.LinkService;
 import backend.academy.scrapper.stackoverflow.StackOverflowClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,8 +27,9 @@ public class KafkaStackOverflowCheckService extends AbstractStackoverflowCheckSe
             StackOverflowClient stackOverflowClient,
             LinkService linkService,
             ChatService chatService,
-            KafkaTemplate<String, LinkUpdate> kafkaTemplate) {
-        super(stackOverflowClient, linkService, chatService);
+            KafkaTemplate<String, LinkUpdate> kafkaTemplate,
+            MeterRegistry registry) {
+        super(stackOverflowClient, linkService, chatService, registry);
         this.kafkaTemplate = kafkaTemplate;
     }
 

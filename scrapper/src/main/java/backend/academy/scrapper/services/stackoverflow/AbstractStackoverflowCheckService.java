@@ -7,6 +7,8 @@ import backend.academy.scrapper.services.ChatService;
 import backend.academy.scrapper.services.LinkService;
 import backend.academy.scrapper.stackoverflow.StackOverflowClient;
 import backend.academy.scrapper.stackoverflow.StackOverflowQuestionAnswer;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +28,8 @@ public abstract class AbstractStackoverflowCheckService {
     private final StackOverflowClient stackOverflowClient;
     private final LinkService linkService;
     private final ChatService chatService;
+    private final Timer soScrapeTimer;
+    private final MeterRegistry registry;
 
     private static final int BATCH_SIZE = 250;
     private static final int NUM_THREADS = 4;
@@ -39,11 +43,19 @@ public abstract class AbstractStackoverflowCheckService {
             + "👤 Автор: %s%n" + "📅 Время ответа: %s%n" + "🔗 [Смотреть ответ на StackOverflow](%s)";
 
     public AbstractStackoverflowCheckService(
-            StackOverflowClient stackOverflowClient, LinkService linkService, ChatService chatService) {
+            StackOverflowClient stackOverflowClient,
+            LinkService linkService,
+            ChatService chatService,
+            MeterRegistry registry) {
         this.stackOverflowClient = stackOverflowClient;
         this.linkService = linkService;
         this.chatService = chatService;
         this.executorService = Executors.newFixedThreadPool(NUM_THREADS);
+        this.registry = registry;
+        this.soScrapeTimer = Timer.builder("scrape.time")
+                .tags("platform", "stackoverflow")
+                .publishPercentiles(0.5, 0.95, 0.99)
+                .register(registry);
     }
 
     @Scheduled(cron = "${app.cron}")
@@ -91,6 +103,7 @@ public abstract class AbstractStackoverflowCheckService {
     }
 
     private void checkStackOverflowQuestion(Link link) {
+        Timer.Sample sample = Timer.start(registry);
         String[] parts = link.url().split("/");
         String questionId = parts[parts.length - 2];
 
@@ -138,6 +151,7 @@ public abstract class AbstractStackoverflowCheckService {
                 }
             });
         });
+        sample.stop(soScrapeTimer);
     }
 
     boolean isStackOverflowQuestion(String url) {
