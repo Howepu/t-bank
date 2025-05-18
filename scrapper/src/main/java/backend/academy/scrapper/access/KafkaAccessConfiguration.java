@@ -9,6 +9,7 @@ import backend.academy.scrapper.services.github.KafkaLinkCheckService;
 import backend.academy.scrapper.services.stackoverflow.AbstractStackoverflowCheckService;
 import backend.academy.scrapper.services.stackoverflow.KafkaStackOverflowCheckService;
 import backend.academy.scrapper.stackoverflow.StackOverflowClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +28,9 @@ public class KafkaAccessConfiguration {
             GitHubClient gitHubClient,
             LinkService linkService,
             ChatService chatService,
-            KafkaTemplate<String, LinkUpdate> kafkaTemplate) {
-        return new KafkaLinkCheckService(gitHubClient, linkService, chatService, kafkaTemplate, updates);
+            KafkaTemplate<String, LinkUpdate> kafkaTemplate,
+            MeterRegistry registry) {
+        return new KafkaLinkCheckService(gitHubClient, linkService, chatService, kafkaTemplate, updates, registry);
     }
 
     @Bean
@@ -36,7 +38,9 @@ public class KafkaAccessConfiguration {
             StackOverflowClient stackOverflowClient,
             LinkService linkService,
             ChatService chatService,
-            KafkaTemplate<String, LinkUpdate> kafkaTemplate) {
-        return new KafkaStackOverflowCheckService(stackOverflowClient, linkService, chatService, kafkaTemplate);
+            KafkaTemplate<String, LinkUpdate> kafkaTemplate,
+            MeterRegistry registry) {
+        return new KafkaStackOverflowCheckService(
+                stackOverflowClient, linkService, chatService, kafkaTemplate, registry);
     }
 }

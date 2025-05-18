@@ -83,6 +83,24 @@ resilience4j:
         permitted-number-of-calls-in-half-open-state: 1
         wait-duration-in-open-state: 1s
 
+management:
+  server:
+    port: 8082
+  endpoints:
+    web:
+      exposure:
+        include: "info, health, prometheus"
+      path-mapping:
+        prometheus: metrics
+      base-path: /
+  metrics:
+    distribution:
+      percentiles-histogram:
+        scrape.time: true
+      percentiles:
+        scrape.time: 0.5,0.95,0.99
+    tags:
+      application: ${spring.application.name}
 
 server:
   port: 8081

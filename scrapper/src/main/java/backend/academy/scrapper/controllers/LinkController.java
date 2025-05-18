@@ -3,6 +3,7 @@ package backend.academy.scrapper.controllers;
 import backend.academy.scrapper.dto.*;
 import backend.academy.scrapper.models.Chat;
 import backend.academy.scrapper.models.Link;
+import backend.academy.scrapper.services.LinkCounter;
 import backend.academy.scrapper.services.LinkService;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class LinkController {
 
     private final LinkService linkService;
+    private final LinkCounter counter;
 
     @GetMapping
     public ResponseEntity<ListLinksResponse> getAllLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
@@ -31,6 +33,8 @@ public class LinkController {
                 .map(link -> new LinkResponse(
                         link.chat().chatId(), sanitize(link.url()), link.assignedTags(), link.assignedFilters()))
                 .toList();
+
+        counter.updateLinkCounters(links);
 
         log.info("Найдено {} ссылок для чата {}", links.size(), sanitizedChatId);
         return ResponseEntity.ok(new ListLinksResponse(links, links.size()));
