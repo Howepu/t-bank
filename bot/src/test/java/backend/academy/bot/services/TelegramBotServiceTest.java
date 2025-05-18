@@ -41,7 +41,6 @@ class TelegramBotServiceTest {
         telegramBotService = new TelegramBotService(commandHandlers, trackDialog, registry);
     }
 
-
     @Test
     void testUnknownCommandThrowsException() {
         Update update = mockUpdate(12345L, "/unknowncommand");
