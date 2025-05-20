@@ -13,7 +13,6 @@ import io.github.resilience4j.retry.annotation.Retry;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -25,8 +24,8 @@ public class ScrapperHttpClient {
 
     private final WebClient webClient;
 
-    public ScrapperHttpClient(WebClient.Builder webClientBuilder, @Value("${scrapper.base-url}") String baseUrl) {
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+    public ScrapperHttpClient(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.baseUrl("http://scrapper:8081").build();
     }
 
     @Retry(name = "getLinksRetry", fallbackMethod = "fallbackVoid")

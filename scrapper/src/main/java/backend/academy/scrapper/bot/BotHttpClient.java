@@ -15,7 +15,7 @@ public class BotHttpClient {
     private final WebClient webClient;
 
     public BotHttpClient(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8080").build();
+        this.webClient = webClientBuilder.baseUrl("http://bot:8080").build();
     }
 
     @Retry(name = "UpdateRetry", fallbackMethod = "fallbackVoid")

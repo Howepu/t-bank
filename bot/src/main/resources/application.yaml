@@ -1,6 +1,6 @@
 app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
-  base_url: http://localhost:8081
+  base_url: http://bot:8080
 
 spring:
   application:
@@ -19,10 +19,10 @@ spring:
     properties:
       spring.json.trusted.packages: '*'
       spring.json.value.default.type: backend.academy.bot.dto.LinkUpdate
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: kafka:9092
   data:
     redis:
-      host: localhost
+      host: bot
       port: 6379
       timeout: 2000ms
   webclient:
@@ -31,10 +31,10 @@ spring:
 
 bucket4j:
   enabled: true
-  cache-to-use: simple
   filters:
     - cache-name: rateLimitCache
-      url: .*
+      url: ".*"
+      strategy: FIRST
       http-status-code: TOO_MANY_REQUESTS
       rate-limits:
         - bandwidths:
@@ -42,29 +42,33 @@ bucket4j:
               time: 1
               unit: seconds
           expression: "request.getRemoteAddr()"
+logging:
+  level:
+    org.springframework.boot.context.properties: DEBUG
+resilience4j.retry:
+  configs:
+    default:
+      maxAttempts: 3
+      waitDuration: 2s
+      retryExceptions:
+        - org.springframework.web.reactive.function.client.WebClientRequestException
+        - org.springframework.web.reactive.function.client.WebClientResponseException
+        - org.springframework.web.client.HttpServerErrorException
+      ignoreExceptions:
+        - org.springframework.web.client.HttpClientErrorException
+  instances:
+    getLinksRetry:
+      base-config: default
 
-resilience4j:
-  retry:
-    instances:
-      getLinksRetry:
-        max-attempts: 3
-        wait-duration: 2s
-        retry-exceptions:
-          - org.springframework.web.reactive.function.client.WebClientRequestException
-          - org.springframework.web.reactive.function.client.WebClientResponseException
-          - org.springframework.web.client.HttpServerErrorException
-        ignore-exceptions:
-          - org.springframework.web.client.HttpClientErrorException
-
-  circuitbreaker:
-    instances:
-      getLinksCB:
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 1
-        minimum-number-of-calls: 1
-        failure-rate-threshold: 100
-        permitted-number-of-calls-in-half-open-state: 1
-        wait-duration-in-open-state: 1s
+resilience4j.circuitbreaker:
+  instances:
+    getLinksCB:
+      sliding-window-type: COUNT_BASED
+      sliding-window-size: 1
+      minimum-number-of-calls: 1
+      failure-rate-threshold: 100
+      permitted-number-of-calls-in-half-open-state: 1
+      wait-duration-in-open-state: 1s
 server:
   port: 8080
 
@@ -86,7 +90,3 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
-
-
-scrapper:
-  base-url: ${SCRAPPER_BASE_URL:http://localhost:8081}

@@ -12,6 +12,7 @@ public record ScrapperConfig(
         String databaseAccessType,
         String messageTransport,
         String kafkaTopicUpdates,
-        String cron) {
+        String cron,
+        String baseUrl) {
     public record StackOverflowCredentials(@NotEmpty String key, @NotEmpty String accessToken) {}
 }

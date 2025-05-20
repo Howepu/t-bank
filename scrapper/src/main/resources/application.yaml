@@ -1,5 +1,5 @@
 app:
-  message-transport: kafka
+  message-transport: http
   database-access-type: jpa
   cron: "30 45 17 * * *"
   github-token: ${GITHUB_TOKEN} # env variable
@@ -21,7 +21,7 @@ spring:
     open-in-view: false
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:scrapper}
+    url: jdbc:postgresql://localhost:5433/scrapper
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -33,7 +33,7 @@ spring:
       max-lifetime: 1800000
 
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: scrapper:29092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

@@ -10,6 +10,8 @@
 
     <artifactId>bot</artifactId>
 
+    <packaging>jar</packaging>
+
     <dependencies>
         <dependency>
             <groupId>com.github.pengrad</groupId>

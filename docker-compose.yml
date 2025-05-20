@@ -29,11 +29,13 @@ services:
       - backend
 
   zookeeper:
+    container_name: zookeeper
     image: confluentinc/cp-zookeeper:7.3.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-
+    networks:
+      - backend
   kafka:
     image: confluentinc/cp-kafka:7.3.0
     depends_on:
@@ -46,17 +48,20 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "29092:29092"
+    networks:
+      - backend
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on:
       - kafka
     ports:
-      - "8090:8080"  # <-- меняем порт здесь
+      - "8090:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-
+    networks:
+      - backend
 
   redis:
     image: redis:alpine
@@ -66,6 +71,8 @@ services:
       - redis_data:/data
     command: redis-server --save 60 1 --appendonly yes
     restart: unless-stopped
+    networks:
+      - backend
 
   prometheus:
     image: prom/prometheus
@@ -73,6 +80,8 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - backend
 
 
   grafana:
@@ -81,6 +90,40 @@ services:
       - "3000:3000"
     volumes:
       - ./grafana-data:/var/lib/grafana
+    networks:
+      - backend
+
+
+  bot:
+    image: bot:latest
+    build:
+      context: bot
+      args:
+        DOCKER_BUILDKIT: 1
+    env_file: .env
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - scrapper
+    networks:
+      - backend
+
+
+  scrapper:
+    image: scrapper:latest
+    build:
+      context: scrapper
+      dockerfile: Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
+    env_file: .env
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgresql
+    networks:
+      - backend
+
 
 networks:
   backend:

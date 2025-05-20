@@ -14,6 +14,6 @@ public class KafkaTopic {
 
     @Bean
     public NewTopic updates() {
-        return TopicBuilder.name(updates).build();
+        return TopicBuilder.name("updates").build();
     }
 }
