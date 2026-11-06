@@ -1,5 +1,6 @@
 app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
+  base_url: http://bot:8080
 
 spring:
   application:
@@ -10,9 +11,80 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: '*'
+      spring.json.value.default.type: backend.academy.bot.dto.LinkUpdate
+    bootstrap-servers: kafka:9092
+  data:
+    redis:
+      host: bot
+      port: 6379
+      timeout: 2000ms
+  webclient:
+    connect-timeout: 5000
+    read-timeout: 5000
 
+bucket4j:
+  enabled: true
+  filters:
+    - cache-name: rateLimitCache
+      url: ".*"
+      strategy: FIRST
+      http-status-code: TOO_MANY_REQUESTS
+      rate-limits:
+        - bandwidths:
+            - capacity: 10
+              time: 1
+              unit: seconds
+          expression: "request.getRemoteAddr()"
+logging:
+  level:
+    org.springframework.boot.context.properties: DEBUG
+resilience4j.retry:
+  configs:
+    default:
+      maxAttempts: 3
+      waitDuration: 2s
+      retryExceptions:
+        - org.springframework.web.reactive.function.client.WebClientRequestException
+        - org.springframework.web.reactive.function.client.WebClientResponseException
+        - org.springframework.web.client.HttpServerErrorException
+      ignoreExceptions:
+        - org.springframework.web.client.HttpClientErrorException
+  instances:
+    getLinksRetry:
+      base-config: default
+
+resilience4j.circuitbreaker:
+  instances:
+    getLinksCB:
+      sliding-window-type: COUNT_BASED
+      sliding-window-size: 1
+      minimum-number-of-calls: 1
+      failure-rate-threshold: 100
+      permitted-number-of-calls-in-half-open-state: 1
+      wait-duration-in-open-state: 1s
 server:
   port: 8080
+
+management:
+  server:
+    port: 8083
+  endpoints:
+    web:
+      exposure:
+        include: "info, health, prometheus"
+      path-mapping:
+        prometheus: metrics
+      base-path: /
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 springdoc:
   swagger-ui:

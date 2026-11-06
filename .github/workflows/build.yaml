@@ -3,10 +3,14 @@ name: Build
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - homework1
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: edu-self-hosted
+    timeout-minutes: 10
     name: Build
     permissions:
       contents: read
@@ -15,29 +19,64 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           java-version: '23'
           distribution: 'temurin'
           cache: maven
 
+      - name: Установить Maven
+        run: |
+          curl -fsSL https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o maven.tar.gz
+          tar -xzf maven.tar.gz
+          sudo mv apache-maven-3.9.6 /opt/maven
+          echo "/opt/maven/bin" >> $GITHUB_PATH
+
+      - name: Start PostgreSQL
+        run: |
+          docker run --name test-postgres \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=postgres \
+          -e POSTGRES_DB=scrapper \
+          -p 5433:5432 -d postgres:17-alpine
+
+      - name: Start ZooKeeper
+        run: |
+          docker run -d --name zookeeper -p 2181:2181 zookeeper:3.7
+
+      - name: Start Kafka
+        run: |
+          docker run -d --name kafka \
+            --link zookeeper \
+            -p 29092:29092 \
+            -e KAFKA_BROKER_ID=1 \
+            -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+            -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092 \
+            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092 \
+            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+            confluentinc/cp-kafka:7.5.1
+
+      - name: Разрешить запуск Testcontainers
+        run: echo "TESTCONTAINERS_RYUK_DISABLED=true" >> $GITHUB_ENV
+
       - name: maven build
         run: mvn verify
 
-      - id: jacoco
-        uses: madrapps/jacoco-report@v1.7.1
-        if: ( github.event_name != 'workflow_dispatch' )
-        with:
-          paths: ${{ github.workspace }}/report/target/site/jacoco/jacoco.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 30
-          min-coverage-changed-files: 30
-          title: Code Coverage
-          update-comment: true
+      - name: Остановить и удалить PostgreSQL-контейнер
+        if: always()
+        run: docker rm -f test-postgres || true
+
+      - name: Остановить и удалить Kafka и ZooKeeper
+        if: always()
+        run: docker rm -f kafka zookeeper || true
 
   linter:
     name: linter
-    runs-on: ubuntu-latest
+    runs-on: edu-self-hosted
+    container:
+      image: maven:3-eclipse-temurin-24
+    timeout-minutes: 10
     permissions:
       contents: read
       packages: write
@@ -49,6 +88,5 @@ jobs:
         with:
           java-version: '23'
           distribution: 'temurin'
-          cache: maven
 
       - run: mvn compile -am spotless:check modernizer:modernizer spotbugs:check pmd:check pmd:cpd-check

@@ -6,6 +6,13 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "app", ignoreUnknownFields = false)
-public record ScrapperConfig(@NotEmpty String githubToken, StackOverflowCredentials stackOverflow) {
+public record ScrapperConfig(
+        @NotEmpty String githubToken,
+        StackOverflowCredentials stackOverflow,
+        String databaseAccessType,
+        String messageTransport,
+        String kafkaTopicUpdates,
+        String cron,
+        String baseUrl) {
     public record StackOverflowCredentials(@NotEmpty String key, @NotEmpty String accessToken) {}
 }
